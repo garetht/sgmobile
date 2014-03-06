@@ -1,5 +1,5 @@
 <div class="explore-cell">
   <div ng-repeat="event in exploreEvents">
-    {{event.title}}
+    {{event.announce_date | date : 'medium'}}
   </div>
 </div>
