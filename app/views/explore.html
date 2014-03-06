@@ -5,7 +5,7 @@
     <div class="heart filled"></div>
     <div class="event-info">
       <h2>{{ event.performers[0].name }}</h2>
-      <h5>Fri, Aug 22, 7:45PM - Barclays Center</h5>
+      <h5>{{ event.datetime_local | date:'EEE, MMM d, h:mm a' }} - {{ event.venue.name }}</h5>
     </div>
   </div>
 </div>
