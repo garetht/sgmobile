@@ -2,7 +2,7 @@
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" ng-app="sgmobileApp"> <!--<![endif]-->
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -17,13 +17,30 @@
         <link rel="stylesheet" href="styles/explore.css">
         <!-- endbuild -->
 </head>
-  <body ng-app="sgmobileApp">
+  <body>
     <header class="sg-header">
-
+      Explore
     </header>
 
     <!-- Add your site or application content here -->
     <div class="container" ng-view=""></div>
+    <footer class="sg-footer">
+      <div class="footer-icon selected">
+        <div class="icon explore-icon"></div>
+      </div>
+      <div class="footer-icon">
+        <div class="icon search-icon"></div>
+      </div>
+      <div class="footer-icon">
+        <div class="icon profile-icon"></div>
+      </div>
+      <div class="footer-icon">
+        <div class="icon performers-icon"></div>
+      </div>
+      <div class="footer-icon">
+        <div class="icon settings-icon"></div>
+      </div>
+    </footer>
 
     <script src="bower_components/angular/angular.js"></script>
 

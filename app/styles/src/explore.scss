@@ -1,0 +1,88 @@
+$fontStackHeader : 'Proxima Nova', proxima-nova-1, proxima-nova-2, 'Helvetica Neue', Arial, Helvetica, sans-serif;
+$fontStackBody   : 'Helvetica Neue', Arial, Helvetica, sans-serif;
+$fontSize        : 13px;
+$fontHeight      : 100%;
+$fontWeight      : 400;
+
+@mixin font-stack($header: false, $size: $fontSize, $lineHeight: $fontHeight, $weight: $fontWeight) {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  @if $header {
+    font: $weight $size $fontStackHeader;
+  } @else {
+    font: $weight $size $fontStackBody;
+  }
+  // Sass interprets anything with a / as division, so separate out the line height.
+  @if $lineHeight {
+    line-height: $lineHeight;
+  }
+}
+
+@mixin dimensions($width, $height) {
+  width: $width;
+  height: $height;
+}
+
+$mobileGray: #b3c0cc;
+$mobileLightBlue: #2666b1;
+$mobileDarkBlue: rgba(22,81,150,.96);
+$mobileGrayBorder: 1px solid #b3c0cc;
+
+.sg-header {
+  color: #fff;
+  @include font-stack($size: 18px, $weight: 500);
+  letter-spacing: 0.5px;
+  padding: 10px 0;
+  text-align: center;
+  background-color: rgba(22,81,150,.96);
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.sg-footer {
+  position: absolute;
+  bottom: 0;
+  height: 44px;
+  border-top: $mobileGrayBorder;
+  width: 100%;
+
+  .footer-icon {
+    width: 20%;
+    height: 44px;
+    box-sizing: border-box;
+    border-right: $mobileGrayBorder;
+    float: left;
+
+    .icon {
+      width: 32px;
+      height: 32px;
+      margin-top: 5px;
+      margin-left: 15px;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    @each $tab in explore, search, profile, performers, settings {
+      .#{$tab}-icon {
+        background-image: url(https://s3.amazonaws.com/uploads.hipchat.com/13429/548128/RrQvvmLQJsEKYTT/#{$tab}.png);
+      }
+    }
+
+    &.selected {
+      border-bottom: 4px solid $mobileLightBlue;
+    }
+  }
+}
+
+
+
+.container {
+
+}
+
+.explore-cell {
+  background: red;
+  height: 300px;
+  width: 100%;
+}
