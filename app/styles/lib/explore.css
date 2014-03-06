@@ -1,0 +1,72 @@
+/* line 31, ../src/explore.scss */
+.sg-header {
+  color: #fff;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 500 18px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+  letter-spacing: 0.5px;
+  padding: 10px 0;
+  text-align: center;
+  background-color: rgba(22, 81, 150, 0.96);
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+/* line 43, ../src/explore.scss */
+.sg-footer {
+  position: absolute;
+  bottom: 0;
+  height: 44px;
+  border-top: 1px solid #b3c0cc;
+  width: 100%;
+}
+/* line 50, ../src/explore.scss */
+.sg-footer .footer-icon {
+  width: 20%;
+  height: 44px;
+  box-sizing: border-box;
+  border-right: 1px solid #b3c0cc;
+  float: left;
+}
+/* line 57, ../src/explore.scss */
+.sg-footer .footer-icon .icon {
+  width: 32px;
+  height: 32px;
+  margin-top: 5px;
+  margin-left: 15px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+/* line 67, ../src/explore.scss */
+.sg-footer .footer-icon .explore-icon {
+  background-image: url(https://s3.amazonaws.com/uploads.hipchat.com/13429/548128/RrQvvmLQJsEKYTT/explore.png);
+}
+/* line 67, ../src/explore.scss */
+.sg-footer .footer-icon .search-icon {
+  background-image: url(https://s3.amazonaws.com/uploads.hipchat.com/13429/548128/RrQvvmLQJsEKYTT/search.png);
+}
+/* line 67, ../src/explore.scss */
+.sg-footer .footer-icon .profile-icon {
+  background-image: url(https://s3.amazonaws.com/uploads.hipchat.com/13429/548128/RrQvvmLQJsEKYTT/profile.png);
+}
+/* line 67, ../src/explore.scss */
+.sg-footer .footer-icon .performers-icon {
+  background-image: url(https://s3.amazonaws.com/uploads.hipchat.com/13429/548128/RrQvvmLQJsEKYTT/performers.png);
+}
+/* line 67, ../src/explore.scss */
+.sg-footer .footer-icon .settings-icon {
+  background-image: url(https://s3.amazonaws.com/uploads.hipchat.com/13429/548128/RrQvvmLQJsEKYTT/settings.png);
+}
+/* line 72, ../src/explore.scss */
+.sg-footer .footer-icon.selected {
+  border-bottom: 4px solid #2666b1;
+}
+
+/* line 84, ../src/explore.scss */
+.explore-cell {
+  background: red;
+  height: 300px;
+  width: 100%;
+}
