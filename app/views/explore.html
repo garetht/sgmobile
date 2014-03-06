@@ -2,9 +2,10 @@
   <div class="explore-cell-container">
     <div class="photo" ng-style="{'background-image': 'url(' + event.performers[0].images.huge +')'}"></div>
     <div class="photo-overlay"></div>
+    <div class="heart"></div>
     <div class="event-info">
-      <h2>Header 1 Goes Here</h2>
-      <h4>This is the date</h4>
+      <h2>{{ event.performers[0].name }}</h2>
+      <h5>Fri, Aug 22, 7:45PM - Barclays Center</h5>
     </div>
   </div>
 </div>

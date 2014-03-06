@@ -77,52 +77,73 @@
   overflow-y: scroll;
 }
 
-/* line 94, ../src/explore.scss */
+/* line 95, ../src/explore.scss */
 .explore-cell-container {
   position: relative;
-  background: #aaa;
-  height: 210px;
+  background: #333;
+  height: 205px;
   width: 100%;
 }
-/* line 99, ../src/explore.scss */
+/* line 100, ../src/explore.scss */
 .explore-cell-container .photo {
   background-size: cover;
   background-position: center;
   width: 100%;
-  height: 210px;
+  height: 205px;
 }
-/* line 105, ../src/explore.scss */
+/* line 106, ../src/explore.scss */
 .explore-cell-container .photo-overlay {
-  height: 210px;
+  height: 205px;
   width: 100%;
   position: absolute;
   top: 0;
   left: 0;
-  background: -moz-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.5) 77%, rgba(0, 0, 0, 0.74) 100%);
+  background: -moz-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.2) 35%, rgba(0, 0, 0, 0.65) 77%, rgba(0, 0, 0, 0.85) 100%);
   /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, rgba(0, 0, 0, 0)), color-stop(35%, rgba(0, 0, 0, 0)), color-stop(77%, rgba(0, 0, 0, 0.5)), color-stop(100%, rgba(0, 0, 0, 0.74)));
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, rgba(0, 0, 0, 0)), color-stop(35%, rgba(0, 0, 0, 0.2)), color-stop(77%, rgba(0, 0, 0, 0.65)), color-stop(100%, rgba(0, 0, 0, 0.85)));
   /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0.5) 77%, rgba(0, 0, 0, 0.74) 100%);
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.2) 10%, rgba(0, 0, 0, 0.65) 77%, rgba(0, 0, 0, 0.85) 100%);
   /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.5) 77%, rgba(0, 0, 0, 0.74) 100%);
+  background: -o-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.2) 35%, rgba(0, 0, 0, 0.65) 77%, rgba(0, 0, 0, 0.85) 100%);
   /* Opera 11.10+ */
-  background: -ms-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.5) 77%, rgba(0, 0, 0, 0.74) 100%);
+  background: -ms-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.2) 35%, rgba(0, 0, 0, 0.65) 77%, rgba(0, 0, 0, 0.85) 100%);
   /* IE10+ */
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.5) 77%, rgba(0, 0, 0, 0.74) 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.2) 35%, rgba(0, 0, 0, 0.65) 77%, rgba(0, 0, 0, 0.85) 100%);
   /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00000000', endColorstr='#bd000000',GradientType=0 );
   /* IE6-9 */
 }
-/* line 119, ../src/explore.scss */
+/* line 120, ../src/explore.scss */
 .explore-cell-container .event-info {
   position: absolute;
-  bottom: 0;
+  bottom: 18px;
+  left: 18px;
 }
-/* line 122, ../src/explore.scss */
-.explore-cell-container .event-info h2, .explore-cell-container .event-info h4 {
-  -webkit-font-smoothing: subpixel-antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font: 100 18px "Helvetica Neue", Arial, Helvetica, sans-serif;
-  line-height: 100%;
+/* line 124, ../src/explore.scss */
+.explore-cell-container .event-info h2 {
+  font-family: "HelveticaNeue-UltraLight", "Helvetica Neue UltraLight", "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-weight: 100;
   color: white;
+  margin-bottom: 3px;
+}
+/* line 130, ../src/explore.scss */
+.explore-cell-container .event-info h5 {
+  font-family: "HelveticaNeue-UltraLight", "Helvetica Neue UltraLight", "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-weight: 100;
+  color: #EEE;
+}
+/* line 136, ../src/explore.scss */
+.explore-cell-container .heart {
+  background: url(/images/unfilled-heart.png);
+  background-size: 23px 21px;
+  width: 23px;
+  height: 21px;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+/* line 145, ../src/explore.scss */
+.explore-cell-container .heart.filled {
+  background: url(/images/filled-heart.png);
+  background-size: 23px 21px;
 }
