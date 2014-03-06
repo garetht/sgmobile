@@ -9,7 +9,7 @@ angular.module('sgmobileApp', [
   .config(function ($routeProvider) {
     $routeProvider
       .when('/', {
-        templateUrl: 'views/main.html',
+        templateUrl: 'views/explore.html',
         controller: 'MainCtrl'
       })
       .otherwise({
