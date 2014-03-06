@@ -10,7 +10,7 @@ angular.module('sgmobileApp', [
     $routeProvider
       .when('/', {
         templateUrl: 'views/explore.html',
-        controller: 'ExploreController'
+        controller: 'ExploreCtrl'
       })
       .otherwise({
         redirectTo: '/'
