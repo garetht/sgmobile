@@ -1,0 +1,89 @@
+/* line 44, ../src/common.scss */
+html, body {
+  height: 100%;
+}
+
+/* line 4, ../src/settings.scss */
+#settings {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  background-size: cover;
+}
+/* line 11, ../src/settings.scss */
+#settings .logo-container {
+  position: relative;
+  width: 100%;
+  padding-top: 60px;
+}
+/* line 16, ../src/settings.scss */
+#settings .logo-container .logo {
+  margin-left: 85px;
+  margin-bottom: 30px;
+}
+/* line 22, ../src/settings.scss */
+#settings .fb-signup {
+  position: relative;
+  width: 240px;
+  height: 45px;
+  background: #1E569A;
+  margin: 0 auto;
+}
+/* line 28, ../src/settings.scss */
+#settings .fb-signup img {
+  position: absolute;
+  top: 10px;
+  left: 15px;
+}
+/* line 33, ../src/settings.scss */
+#settings .fb-signup p {
+  color: #fff;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 500 17px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+  padding-left: 54px;
+  padding-top: 14px;
+}
+/* line 41, ../src/settings.scss */
+#settings .button-container {
+  position: relative;
+  width: 240px;
+  height: 40px;
+  margin: 0 auto;
+  margin-top: 10px;
+  text-align: center;
+}
+/* line 50, ../src/settings.scss */
+#settings .sign-up {
+  width: 113px;
+  height: 40px;
+  border: 1px solid #777;
+  color: #777;
+  float: left;
+  margin-right: 10px;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 400 17px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+}
+/* line 58, ../src/settings.scss */
+#settings .sign-up p {
+  margin-top: 10px;
+}
+/* line 62, ../src/settings.scss */
+#settings .log-in {
+  width: 113px;
+  height: 40px;
+  border: 1px solid #777;
+  color: #777;
+  float: left;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 400 17px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+}
+/* line 69, ../src/settings.scss */
+#settings .log-in p {
+  margin-top: 10px;
+}

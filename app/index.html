@@ -20,6 +20,7 @@
         <link rel="stylesheet" href="styles/lib/map.css">
         <link rel="stylesheet" href="styles/lib/myevents.css">
         <link rel="stylesheet" href="styles/lib/myperformers.css">
+        <link rel="stylesheet" href="styles/lib/settings.css">
         <!-- endbuild -->
 </head>
   <body>
@@ -27,7 +28,7 @@
     <div class="container slide-animation" ng-view=""></div>
 
     <footer class="sg-footer">
-      <a class="footer-icon selected" href="/">
+      <a class="footer-icon {{ page }}" href="/">
         <div>
           <div class="icon explore-icon"></div>
         </div>
@@ -47,7 +48,7 @@
           <div class="icon performers-icon"></div>
         </div>
       </a>
-      <a class="footer-icon" href="#/myevents">
+      <a class="footer-icon" href="#/settings">
         <div>
           <div class="icon settings-icon"></div>
         </div>
@@ -79,6 +80,7 @@
         <script src="scripts/controllers/map.js"></script>
         <script src="scripts/controllers/myEvents.js"></script>
         <script src="scripts/controllers/myPerformers.js"></script>
+        <script src="scripts/controllers/settings.js"></script>
         <!-- endbuild -->
 </body>
 </html>

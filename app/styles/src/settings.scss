@@ -1,0 +1,73 @@
+@import "compass/css3/border-radius";
+@import "common";
+
+#settings {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  background-size: cover;
+
+
+  .logo-container {
+    position: relative;
+    width: 100%;
+    padding-top: 60px;
+    // background: red;
+    .logo {
+      margin-left: 85px;
+      margin-bottom: 30px;
+    }
+  }
+
+  .fb-signup {
+    position: relative;
+    width: 240px;
+    height: 45px;
+    background: #1E569A;
+    margin: 0 auto;
+    img {
+      position: absolute;
+      top: 10px;
+      left: 15px;
+    }
+    p {
+      color: #fff;
+      @include font-stack($header: true, $size: 17px, $weight: 500);
+      padding-left: 54px;
+      padding-top: 14px; 
+    }
+  }
+
+  .button-container {
+    position: relative;
+    width: 240px;
+    height: 40px;
+    margin: 0 auto;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .sign-up {
+    width: 113px;
+    height: 40px;
+    border: 1px solid #777;
+    color: #777;
+    float: left;
+    margin-right: 10px;
+    @include font-stack($header: true, $size: 17px, $weight: 400);
+    p {
+      margin-top: 10px;
+    }
+  }
+  .log-in {
+    width: 113px;
+    height: 40px;
+    border: 1px solid #777;
+    color: #777;
+    float: left;
+    @include font-stack($header: true, $size: 17px, $weight: 400);
+    p {
+      margin-top: 10px;
+    }
+  }
+}
