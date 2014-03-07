@@ -2,12 +2,6 @@
 body {
 }
 
-#sg-map {
-  width: 100%;
-  height: 388px;
-  position: absolute;
-}
-
 /* Everything but the jumbotron gets side spacing for mobile first views */
 .header,
 .marketing,

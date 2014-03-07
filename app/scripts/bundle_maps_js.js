@@ -9213,7 +9213,6 @@ sgmap.Map = L.Map.extend({
   },
 
   _loadMapData: function (mapid) {
-  	console.log(mapid)
     var that = this,
         url = sgmap.SGMAP_URL + "/" + mapid + '.json';
     $.ajax({
