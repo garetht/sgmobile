@@ -2,6 +2,7 @@
 
 angular.module('sgmobileApp')
   .service('Seatgeek', function Seatgeek($resource) {
+    var LISTING_URL = 'http://seatgeek.dev/event/tickets';
     var API_URL = 'http://api.seatgeek.com/2';
     var SECURE_API_URL = 'https://api.seatgeek.com/2';
     this.Events = $resource(SECURE_API_URL + '/events', {}, {
@@ -20,4 +21,7 @@ angular.module('sgmobileApp')
     this.Autocomplete = $resource(API_URL + '/autocomplete?types[]=event&types[]=teamband&types[]=venue', {}, {
       'getSuggestions': {method: 'get', isArray: false}
     });
+    this.Listings = $resource(LISTING_URL, {}, {
+      'getEventListings': {method: 'get', isArray: false}
+    })
   });
