@@ -7,7 +7,8 @@ angular.module('sgmobileApp')
       'getEvents': {method: 'get', isArray: false, params: {'postal_code': 10003}}
     });
     this.Performers = $resource(API_URL + '/performers', {}, {
-      'getPerformers': {method: 'get', isArray: false, params: {'postal_code': 10003}}
+      'getPerformers': {method: 'get', isArray: false, params: {'postal_code': 10003}},
+      'getPerformer': {method: 'get', isArray: false}
     });
     this.Venues = $resource(API_URL + '/venues', {}, {
       'getVenues': {method: 'get', isArray: false, params:{'postal_code': 10003}}

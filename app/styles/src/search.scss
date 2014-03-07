@@ -44,13 +44,16 @@ $searchDetailPadding : 100px;
 
 .search-cell {
   height: 50px;
-  border-bottom: 1px solid #E7E7E7; 
+  border-bottom: 1px solid #E7E7E7;
   .search-image {
     background-size: contain;
     width: 87px;
     height: 50px;
     float: left;
     border-right: 1px solid #E7E7E7;
+  }
+  a {
+    text-decoration: none;
   }
   .search-event-date {
     width: 87px;
@@ -79,13 +82,13 @@ $searchDetailPadding : 100px;
     }
     h3 {
       @include font-stack($header: true, $size: 17px, $weight: 400);
-      padding-top: 17px;  
-    } 
+      padding-top: 17px;
+    }
     h4 {
     @include font-stack($header: true, $size: 15px, $weight: 400);
      padding-left: $searchDetailPadding;
      padding-top: 10px;
-     padding-bottom: 2px;   
+     padding-bottom: 2px;
     }
     h5 {
       @include font-stack($header: true, $size: 13px, $weight: 400);

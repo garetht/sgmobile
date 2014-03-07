@@ -18,7 +18,7 @@ angular.module('sgmobileApp', [
       })
       .when('/performer/:id', {
         templateUrl: 'views/performer.html',
-        controller: 'SearchCtrl'
+        controller: 'PerformerCtrl'
       })
       .otherwise({
         redirectTo: '/'

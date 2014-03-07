@@ -10,7 +10,7 @@
   <div class="search-cells performer-cells" ng-repeat="performer in searchResults.performers">
     <div class="search-cell">
       <div class="search-image" ng-style="{'background-image': (performer.image ? 'url(' + performer.image + ')' : 'none')}"></div>
-      <div class="search-details"><h3>{{ performer.short_name }}</h3></div>
+      <a ng-href="#/performer/{{performer.id}}"><div class="search-details"><h3>{{ performer.short_name }}</h3></div></a>
     </div>
   </div>
   <div class="category-divider">

@@ -109,13 +109,17 @@ html, body {
   border-right: 1px solid #E7E7E7;
 }
 /* line 55, ../src/search.scss */
+.search-cell a {
+  text-decoration: none;
+}
+/* line 58, ../src/search.scss */
 .search-cell .search-event-date {
   width: 87px;
   height: 50px;
   float: left;
   border-right: 1px solid #E7E7E7;
 }
-/* line 60, ../src/search.scss */
+/* line 63, ../src/search.scss */
 .search-cell .search-event-date h4 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -126,7 +130,7 @@ html, body {
   padding-bottom: 2px;
   color: #868686;
 }
-/* line 67, ../src/search.scss */
+/* line 70, ../src/search.scss */
 .search-cell .search-event-date h5 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -135,12 +139,12 @@ html, body {
   padding-left: 10px;
   color: #868686;
 }
-/* line 74, ../src/search.scss */
+/* line 77, ../src/search.scss */
 .search-cell .search-details,
 .search-cell .search-event-details {
   width: 100%;
 }
-/* line 76, ../src/search.scss */
+/* line 79, ../src/search.scss */
 .search-cell .search-details h3, .search-cell .search-details h4, .search-cell .search-details h5,
 .search-cell .search-event-details h3,
 .search-cell .search-event-details h4,
@@ -148,7 +152,7 @@ html, body {
   padding-left: 100px;
   color: #414141;
 }
-/* line 80, ../src/search.scss */
+/* line 83, ../src/search.scss */
 .search-cell .search-details h3,
 .search-cell .search-event-details h3 {
   -webkit-font-smoothing: subpixel-antialiased;
@@ -157,7 +161,7 @@ html, body {
   line-height: 100%;
   padding-top: 17px;
 }
-/* line 84, ../src/search.scss */
+/* line 87, ../src/search.scss */
 .search-cell .search-details h4,
 .search-cell .search-event-details h4 {
   -webkit-font-smoothing: subpixel-antialiased;
@@ -168,7 +172,7 @@ html, body {
   padding-top: 10px;
   padding-bottom: 2px;
 }
-/* line 90, ../src/search.scss */
+/* line 93, ../src/search.scss */
 .search-cell .search-details h5,
 .search-cell .search-event-details h5 {
   -webkit-font-smoothing: subpixel-antialiased;
