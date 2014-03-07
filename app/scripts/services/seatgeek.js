@@ -12,4 +12,7 @@ angular.module('sgmobileApp')
     this.Venues = $resource(API_URL + '/venues', {}, {
       'getVenues': {method: 'get', isArray: false, params:{'postal_code': 10003}}
     });
+    this.Autocomplete = $resource(API_URL + '/autocomplete?types[]=event&types[]=teamband&types[]=venue', {}, {
+      'getSuggestions': {method: 'get', isArray: false}
+    });
   });
