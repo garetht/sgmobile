@@ -61,15 +61,15 @@ $searchDetailPadding : 100px;
     float: left;
     border-right: 1px solid #E7E7E7;
     h4 {
-    @include font-stack($header: true, $size: 15px, $weight: 400);
-     padding-left: 10px;
-     padding-top: 10px;
+    @include font-stack($header: true, $size: 13px, $weight: 400);
+     padding-left: 8px;
+     padding-top: 12px;
      padding-bottom: 2px;
      color: #868686;
     }
     h5 {
-      @include font-stack($header: true, $size: 13px, $weight: 400);
-      padding-left: 10px;
+      @include font-stack($header: true, $size: 12px, $weight: 400);
+      padding-left: 8px;
       color: #868686;
     }
   }
@@ -82,18 +82,31 @@ $searchDetailPadding : 100px;
     }
     h3 {
       @include font-stack($header: true, $size: 17px, $weight: 400);
+      padding-left: 10px;
       padding-top: 17px;
+      width: 206px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     h4 {
     @include font-stack($header: true, $size: 15px, $weight: 400);
-     padding-left: $searchDetailPadding;
+     padding-left: 10px;
      padding-top: 10px;
      padding-bottom: 2px;
+     width: 206px;
+     white-space: nowrap;
+     overflow: hidden;
+     text-overflow: ellipsis;
     }
     h5 {
       @include font-stack($header: true, $size: 13px, $weight: 400);
-      padding-left: $searchDetailPadding;
+      padding-left: 10px;
       color: #868686;
+      width: 204px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;      
     }
   }
 

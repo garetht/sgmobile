@@ -123,10 +123,10 @@ html, body {
 .search-cell .search-event-date h4 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font: 400 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font: 400 13px "Helvetica Neue", Arial, Helvetica, sans-serif;
   line-height: 100%;
-  padding-left: 10px;
-  padding-top: 10px;
+  padding-left: 8px;
+  padding-top: 12px;
   padding-bottom: 2px;
   color: #868686;
 }
@@ -134,9 +134,9 @@ html, body {
 .search-cell .search-event-date h5 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font: 400 13px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font: 400 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
   line-height: 100%;
-  padding-left: 10px;
+  padding-left: 8px;
   color: #868686;
 }
 /* line 77, ../src/search.scss */
@@ -159,26 +159,39 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   font: 400 17px "Helvetica Neue", Arial, Helvetica, sans-serif;
   line-height: 100%;
+  padding-left: 10px;
   padding-top: 17px;
+  width: 206px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-/* line 87, ../src/search.scss */
+/* line 92, ../src/search.scss */
 .search-cell .search-details h4,
 .search-cell .search-event-details h4 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
   font: 400 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
   line-height: 100%;
-  padding-left: 100px;
+  padding-left: 10px;
   padding-top: 10px;
   padding-bottom: 2px;
+  width: 206px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-/* line 93, ../src/search.scss */
+/* line 102, ../src/search.scss */
 .search-cell .search-details h5,
 .search-cell .search-event-details h5 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
   font: 400 13px "Helvetica Neue", Arial, Helvetica, sans-serif;
   line-height: 100%;
-  padding-left: 100px;
+  padding-left: 10px;
   color: #868686;
+  width: 204px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
