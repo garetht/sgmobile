@@ -1,7 +1,7 @@
 @import "compass/css3/border-radius";
 @import "common";
 
-$searchDetailPadding : 90px;
+$searchDetailPadding : 100px;
 
 .search-view {
   overflow-y: auto;
@@ -47,13 +47,13 @@ $searchDetailPadding : 90px;
   border-bottom: 1px solid #E7E7E7; 
   .search-image {
     background-size: contain;
-    width: 77px;
+    width: 87px;
     height: 50px;
     float: left;
     border-right: 1px solid #E7E7E7;
   }
   .search-event-date {
-    width: 77px;
+    width: 87px;
     height: 50px;
     float: left;
     border-right: 1px solid #E7E7E7;
