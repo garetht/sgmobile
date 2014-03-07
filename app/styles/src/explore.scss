@@ -13,11 +13,13 @@ $mobileGrayBorder: 1px solid #b3c0cc;
   color: #fff;
   @include font-stack($header: true, $size: 18px, $weight: 500);
   letter-spacing: 0.5px;
-  padding: 10px 0;
+  padding: 15px 0;
   text-align: center;
   background-color: rgba(22,81,150,.96);
   width: 100%;
   z-index: 100;
+  position: absolute;
+  top: 0;
 }
 
 .sg-footer {
