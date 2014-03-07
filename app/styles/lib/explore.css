@@ -24,6 +24,14 @@ body {
 }
 
 /* line 23, ../src/explore.scss */
+.explore-header img {
+  width: 22px;
+  position: absolute;
+  right: 15px;
+  top: 14px;
+}
+
+/* line 30, ../src/explore.scss */
 .sg-footer {
   position: absolute;
   bottom: 0;
@@ -32,7 +40,7 @@ body {
   width: 100%;
   background-color: #fff;
 }
-/* line 31, ../src/explore.scss */
+/* line 38, ../src/explore.scss */
 .sg-footer .footer-icon {
   width: 20%;
   height: 44px;
@@ -40,11 +48,11 @@ body {
   border-right: 1px solid #b3c0cc;
   float: left;
 }
-/* line 38, ../src/explore.scss */
+/* line 45, ../src/explore.scss */
 .sg-footer .footer-icon:last-child {
   border-right: 0;
 }
-/* line 42, ../src/explore.scss */
+/* line 49, ../src/explore.scss */
 .sg-footer .footer-icon .icon {
   width: 26px;
   height: 26px;
@@ -53,59 +61,59 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
 }
-/* line 52, ../src/explore.scss */
+/* line 59, ../src/explore.scss */
 .sg-footer .footer-icon .explore-icon {
   background-image: url(/images/explore.png);
 }
-/* line 52, ../src/explore.scss */
+/* line 59, ../src/explore.scss */
 .sg-footer .footer-icon .search-icon {
   background-image: url(/images/search.png);
 }
-/* line 52, ../src/explore.scss */
+/* line 59, ../src/explore.scss */
 .sg-footer .footer-icon .events-icon {
   background-image: url(/images/events.png);
 }
-/* line 52, ../src/explore.scss */
+/* line 59, ../src/explore.scss */
 .sg-footer .footer-icon .performers-icon {
   background-image: url(/images/performers.png);
 }
-/* line 52, ../src/explore.scss */
+/* line 59, ../src/explore.scss */
 .sg-footer .footer-icon .settings-icon {
   background-image: url(/images/settings.png);
 }
-/* line 57, ../src/explore.scss */
+/* line 64, ../src/explore.scss */
 .sg-footer .footer-icon.selected {
   border-bottom: 3px solid #2666b1;
 }
 
-/* line 63, ../src/explore.scss */
+/* line 70, ../src/explore.scss */
 .container {
   width: 100%;
   height: calc(100% - 44px);
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 }
-/* line 69, ../src/explore.scss */
+/* line 76, ../src/explore.scss */
 .container .explore-view {
   height: calc(100% - 39px);
   overflow-y: auto;
 }
 
-/* line 77, ../src/explore.scss */
+/* line 84, ../src/explore.scss */
 .explore-cell-container {
   position: relative;
   background: #333;
   height: 205px;
   width: 100%;
 }
-/* line 82, ../src/explore.scss */
+/* line 89, ../src/explore.scss */
 .explore-cell-container .photo {
   background-size: cover;
   background-position: center;
   width: 100%;
   height: 205px;
 }
-/* line 88, ../src/explore.scss */
+/* line 95, ../src/explore.scss */
 .explore-cell-container .photo-overlay {
   height: 205px;
   width: 100%;
@@ -127,7 +135,7 @@ body {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00000000', endColorstr='#bd000000',GradientType=0 );
   /* IE6-9 */
 }
-/* line 102, ../src/explore.scss */
+/* line 109, ../src/explore.scss */
 .explore-cell-container .heart {
   background: url(/images/unfilled-heart.png);
   background-size: 23px 21px;
@@ -137,18 +145,18 @@ body {
   top: 18px;
   right: 18px;
 }
-/* line 111, ../src/explore.scss */
+/* line 118, ../src/explore.scss */
 .explore-cell-container .heart.filled {
   background: url(/images/filled-heart.png);
   background-size: 23px 21px;
 }
-/* line 115, ../src/explore.scss */
+/* line 122, ../src/explore.scss */
 .explore-cell-container .event-info {
   position: absolute;
   bottom: 18px;
   left: 18px;
 }
-/* line 119, ../src/explore.scss */
+/* line 126, ../src/explore.scss */
 .explore-cell-container .event-info h2, .explore-cell-container .event-info h5 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -158,7 +166,7 @@ body {
   color: white;
   margin-bottom: 3px;
 }
-/* line 125, ../src/explore.scss */
+/* line 132, ../src/explore.scss */
 .explore-cell-container .event-info h5 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -166,7 +174,7 @@ body {
   line-height: 100%;
   color: #EEE;
 }
-/* line 130, ../src/explore.scss */
+/* line 137, ../src/explore.scss */
 .explore-cell-container .heart {
   background: url(/images/unfilled-heart.png);
   background-size: 23px 21px;
@@ -176,7 +184,7 @@ body {
   top: 18px;
   right: 18px;
 }
-/* line 139, ../src/explore.scss */
+/* line 146, ../src/explore.scss */
 .explore-cell-container .heart.filled {
   background: url(/images/filled-heart.png);
   background-size: 23px 21px;
