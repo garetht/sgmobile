@@ -12,6 +12,10 @@ angular.module('sgmobileApp', [
         templateUrl: 'views/explore.html',
         controller: 'ExploreCtrl'
       })
+      .when('/search', {
+        templateUrl: 'views/search.html',
+        controller: 'SearchCtrl'
+      })
       .otherwise({
         redirectTo: '/'
       });

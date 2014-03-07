@@ -1,4 +1,4 @@
-$fontStackHeader : 'Proxima Nova', proxima-nova-1, proxima-nova-2, 'Helvetica Neue', Arial, Helvetica, sans-serif;
+$fontStackHeader : 'Helvetica Neue', Arial, Helvetica, sans-serif;
 $fontStackBody   : 'HelveticaNeue-UltraLight', 'Helvetica Neue Ultra Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 $fontSize        : 13px;
 $fontHeight      : 100%;
@@ -23,6 +23,10 @@ $fontWeight      : 400;
   height: $height;
 }
 
+body {
+  height: 100%;
+}
+
 $mobileGray: #b3c0cc;
 $mobileLightBlue: #2666b1;
 $mobileDarkBlue: rgba(22,81,150,.96);
@@ -30,13 +34,11 @@ $mobileGrayBorder: 1px solid #b3c0cc;
 
 .sg-header {
   color: #fff;
-  @include font-stack($size: 18px, $weight: 500);
+  @include font-stack($header: true, $size: 18px, $weight: 500);
   letter-spacing: 0.5px;
   padding: 10px 0;
   text-align: center;
   background-color: rgba(22,81,150,.96);
-  position: absolute;
-  top: 0;
   width: 100%;
   z-index: 100;
 }
@@ -69,9 +71,9 @@ $mobileGrayBorder: 1px solid #b3c0cc;
       background-repeat: no-repeat;
     }
 
-    @each $tab in explore, search, profile, performers, settings {
+    @each $tab in explore, search, events, performers, settings {
       .#{$tab}-icon {
-        background-image: url(https://s3.amazonaws.com/uploads.hipchat.com/13429/548128/RrQvvmLQJsEKYTT/#{$tab}.png);
+        background-image: url(/images/#{$tab}.png);
       }
     }
 
@@ -81,12 +83,11 @@ $mobileGrayBorder: 1px solid #b3c0cc;
   }
 }
 
-
-
 .container {
   width: 100%;
-  height: 525px;
+  height: 500px;
   overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 $exploreCellHeight: 205px;
