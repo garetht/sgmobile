@@ -1,14 +1,16 @@
-<header class="sg-header">
+<header class="sg-header explore-header">
   Explore
 </header>
-<div class="explore-view" ng-repeat="event in exploreEvents">
-  <div class="explore-cell-container">
-    <div class="photo" ng-style="{'background-image': 'url(' + event.performers[0].images.huge +')'}"></div>
-    <div class="photo-overlay"></div>
-    <div class="heart filled"></div>
-    <div class="event-info">
-      <h2>{{ event.performers[0].name }}</h2>
-      <h5>{{ event.datetime_local | date:'EEE, MMM d, h:mm a' }} - {{ event.venue.name }}</h5>
+<div class="explore-view">
+  <div class="explore-cells" ng-repeat="event in exploreEvents">
+    <div class="explore-cell-container">
+      <div class="photo" ng-style="{'background-image': 'url(' + event.performers[0].images.huge +')'}"></div>
+      <div class="photo-overlay"></div>
+      <div class="heart filled"></div>
+      <div class="event-info">
+        <h2>{{ event.performers[0].name }}</h2>
+        <h5>{{ event.datetime_local | date:'EEE, MMM d, h:mm a' }} - {{ event.venue.name }}</h5>
+      </div>
     </div>
   </div>
 </div>

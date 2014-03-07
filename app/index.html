@@ -15,17 +15,19 @@
         <link rel="stylesheet" href="styles/lib/reset.css">
         <link rel="stylesheet" href="styles/lib/main.css">
         <link rel="stylesheet" href="styles/lib/explore.css">
+        <link rel="stylesheet" href="styles/lib/search.css">
         <!-- endbuild -->
 </head>
   <body>
     <!-- Add your site or application content here -->
-    <div class="container" ng-view=""></div>
+    <div class="container slide-animation" ng-view=""></div>
+
     <footer class="sg-footer">
       <div class="footer-icon selected">
-        <div class="icon explore-icon"></div>
+        <a href="/"><div class="icon explore-icon"></div></a>
       </div>
       <div class="footer-icon">
-        <div class="icon search-icon"></div>
+        <a href="#/search"><div class="icon search-icon"></div></a>
       </div>
       <div class="footer-icon">
         <div class="icon events-icon"></div>
@@ -45,6 +47,7 @@
         <script src="bower_components/angular-cookies/angular-cookies.js"></script>
         <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
         <script src="bower_components/angular-route/angular-route.js"></script>
+        <script src="bower_components/angular-animate/angular-animate.js"></script>
         <!-- endbuild -->
 
         <!-- build:js({.tmp,app}) scripts/scripts.js -->

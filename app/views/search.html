@@ -1,2 +1,8 @@
-<p>Things and stuff</p>
-<p>{{ searchResults }}</p>
+<header class="sg-header search-header">
+  <input type="text" class="search-bar" ng-model="searchText"
+         ng-change="getSuggestions()"
+         placeholder="Search by performer, event, or venue">
+</header>
+<p>{{ searchResults.events }}</p>
+<p>{{ searchResults.performers }}</p>
+<p>{{ searchResults.venues }}</p>

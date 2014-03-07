@@ -1,0 +1,51 @@
+$fontStackHeader : 'Helvetica Neue', Arial, Helvetica, sans-serif;
+$fontStackBody   : 'HelveticaNeue-UltraLight', 'Helvetica Neue Ultra Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+$fontSize        : 13px;
+$fontHeight      : 100%;
+$fontWeight      : 400;
+
+@mixin font-stack($header: false, $size: $fontSize, $lineHeight: $fontHeight, $weight: $fontWeight) {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  @if $header {
+    font: $weight $size $fontStackHeader;
+  } @else {
+    font: $weight $size $fontStackBody;
+  }
+  // Sass interprets anything with a / as division, so separate out the line height.
+  @if $lineHeight {
+    line-height: $lineHeight;
+  }
+}
+
+@mixin dimensions($width, $height) {
+  width: $width;
+  height: $height;
+}
+
+@mixin placeholder {
+  ::-webkit-input-placeholder {
+     @content;
+  }
+
+  :-moz-placeholder { /* Firefox 18- */
+     @content;
+  }
+
+  ::-moz-placeholder {  /* Firefox 19+ */
+     @content;
+  }
+
+  :-ms-input-placeholder {
+     @content;
+  }
+}
+
+html, body {
+  height: 100%;
+}
+
+$mobileGray: #b3c0cc;
+$mobileLightBlue: #2666b1;
+$mobileDarkBlue: rgba(22,81,150,.96);
+$mobileGrayBorder: 1px solid #b3c0cc;

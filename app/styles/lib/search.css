@@ -1,0 +1,71 @@
+/* line 44, ../src/common.scss */
+html, body {
+  height: 100%;
+}
+
+/* line 4, ../src/search.scss */
+.search-bar {
+  width: 255px;
+  padding: 0px 15px;
+  padding-left: 30px;
+  height: 31px;
+  border: 0;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+  border-radius: 5px;
+  background-color: #fff;
+  outline: 0;
+  color: #000;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 300 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+}
+
+/* line 27, ../src/common.scss */
+::-webkit-input-placeholder {
+  padding-top: 2px;
+  color: #b3b3b3;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 300 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+  line-height: 12px;
+}
+
+/* line 31, ../src/common.scss */
+:-moz-placeholder {
+  /* Firefox 18- */
+  padding-top: 2px;
+  color: #b3b3b3;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 300 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+  line-height: 12px;
+}
+
+/* line 35, ../src/common.scss */
+::-moz-placeholder {
+  /* Firefox 19+ */
+  padding-top: 2px;
+  color: #b3b3b3;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 300 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+  line-height: 12px;
+}
+
+/* line 39, ../src/common.scss */
+:-ms-input-placeholder {
+  padding-top: 2px;
+  color: #b3b3b3;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font: 300 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  line-height: 100%;
+  line-height: 12px;
+}
