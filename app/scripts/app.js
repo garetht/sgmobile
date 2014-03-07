@@ -21,9 +21,17 @@ angular.module('sgmobileApp', [
         templateUrl: 'views/myevents.html',
         controller: 'MyeventsCtrl'
       })
+      .when('/myperformers', {
+        templateUrl: 'views/myperformers.html',
+        controller: 'MyperformersCtrl'
+      })      
       .when('/performer/:id', {
         templateUrl: 'views/performer.html',
         controller: 'PerformerCtrl'
+      })
+      .when('/settings', {
+        templateUrl: 'views/settings.html',
+        controller: 'SettingsCtrl'
       })
       .when('/event/:id', {
         templateUrl: 'views/map.html',

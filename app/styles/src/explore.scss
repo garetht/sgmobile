@@ -21,7 +21,9 @@ $mobileGrayBorder: 1px solid #b3c0cc;
 }
 
 .explore-header img,
-.myevents-header img {
+.myevents-header img,
+.myperformers-header img,
+.settings-header {
   width: 22px;
   position: absolute;
   right: 15px;
@@ -131,26 +133,15 @@ $exploreCellHeight: 205px;
     left: 18px;
     h2, h5 {
       @include font-stack($size: 24px, $weight: 100);
+      font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;
       letter-spacing: 1px;
       color: white;
       margin-bottom: 3px;
     }
     h5 {
       @include font-stack($size: 13px, $weight: 100);
+      font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;
       color: #EEE;
     }
-  }
-  .heart {
-    background: url(/images/unfilled-heart.png);
-    background-size: 23px 21px;
-    width: 23px;
-    height: 21px;
-    position: absolute;
-    top: 18px;
-    right: 18px;
-  }
-  .heart.filled {
-    background: url(/images/filled-heart.png);
-    background-size: 23px 21px;
   }
 }
