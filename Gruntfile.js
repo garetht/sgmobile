@@ -28,8 +28,7 @@ module.exports = function (grunt) {
     // Watches files for changes and runs tasks based on the changed files
     watch: {
       js: {
-        files: ['{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js'],
-        tasks: ['newer:jshint:all']
+        files: ['{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js']
       },
       jsTest: {
         files: ['test/spec/{,*/}*.js'],
@@ -57,7 +56,7 @@ module.exports = function (grunt) {
     // The actual grunt server settings
     connect: {
       options: {
-        port: 9000,
+        port: 80,
         // Change this to '0.0.0.0' to access the server from outside.
         hostname: 'localhost',
         livereload: 35729
@@ -136,9 +135,9 @@ module.exports = function (grunt) {
       }
     },
 
-    
 
-    
+
+
 
     // Renames files for browser caching purposes
     rev: {

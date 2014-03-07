@@ -20,6 +20,10 @@ angular.module('sgmobileApp', [
         templateUrl: 'views/performer.html',
         controller: 'PerformerCtrl'
       })
+      .when('/event/:id', {
+        templateUrl: 'views/map.html',
+        controller: 'MapCtrl'
+      })
       .otherwise({
         redirectTo: '/'
       });

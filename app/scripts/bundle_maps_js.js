@@ -3529,7 +3529,7 @@ L.Marker = L.Class.extend({
 			if (options.title) {
 				icon.title = options.title;
 			}
-			
+
 			if (options.alt) {
 				icon.alt = options.alt;
 			}
@@ -9054,7 +9054,7 @@ L.Map.include({
 	updateMarkers : function (markers) {
 		this.markers = markers;
 		this.fragment = document.createDocumentFragment();
-		
+
 		var that = this;
 		this._map.current_layer = this.type;
 		this._map[this.type + "_frag"] = this.fragment;
@@ -9213,6 +9213,7 @@ sgmap.Map = L.Map.extend({
   },
 
   _loadMapData: function (mapid) {
+  	console.log(mapid)
     var that = this,
         url = sgmap.SGMAP_URL + "/" + mapid + '.json';
     $.ajax({
@@ -9287,13 +9288,13 @@ sgmap.Map = L.Map.extend({
 
     //fullZoom is delayed to allow for transition animation to occur
     //Prevents another zoom during the animation (which causes the markers to be out of place)
-    var that = this; 
+    var that = this;
     setTimeout(function() {
       that._fullZoom = false;
     }, delay);
 
     this._delayTime = 0;
-    
+
 
     L.DomUtil.removeClass(this._mapPane, 'leaflet-zoom-anim');
 
@@ -9353,7 +9354,7 @@ sgmap.Map = L.Map.extend({
     if (event_view._markerSelected) {
       marker.on('click', function (e) {
         event_view._markerSelected(e);
-      }); 
+      });
     }
 
     return marker;
@@ -9882,1633 +9883,1265 @@ sgmap.Tooltip = L.Popup.extend({
   }
 });
 
-;sgmap.EventView = Backbone.View.extend({
-  map: null,
-  _listingsLoaded: false,
-  _mapReady: false,
-  listings: null,
-  listingsView: null,
-  _listingsViewDefaultOptions: {},
-  markers: null,
-  marker_formatter: null,
-  tooltip_formatter: null,
-  scale_factor: 1,
-  switch_level: 2,
-  hovered_marker: null,
-  selected_marker: null,
-
-  initialize: function (options) {
-    var that = this;
-
-    this._initializeListings();
-
-    this.on("all", function (evt) { sgmap.log("Event received: " + evt); });
-
-    this.markers = [];
-    this.plugins = [];
-
-    //EventView Events
-    this.on("map:load", this._onMapLoad.bind(this));
-    this.on("map:detail-change", this._onDetailChange.bind(this));
-
-    //Map Events
-    this.on("marker:selected", this._onMarkerSelect.bind(this));
-
-
-    //Listing Events
-    this.listings.on("listings:update", this._onListingsUpdate.bind(this));
-
-    this.listings.on("listings:hover", this._onListingHover.bind(this));
-    this.listings.on("listings:unhover", this._onListingUnhover.bind(this));
-
-    //ListingView Events
-    this.listings.on("listings:select", this._onListingSelect.bind(this));
-    this.listings.on("listings:unselect", this._onListingUnselect.bind(this));
-
-    //ESC Event
-    $(document).bind('keyup', function (e) {
-      if (e.keyCode === 13 || e.keyCode === 27) {
-        that._onMarkerUnselect();
-      };
-    });
-
-    this._retrieveEvents();
-  },
-
-  _initialize: function (data) {
-    var that = this;
-
-    this.data = data;
-    this.trigger("event:load");
-
-    if (this.data.map) {
-      console.log(this.data.map)
-      this.map = sgmap.map(this.el, this.data.map.id, this.options.mapOptions);
-      // The map is available to interact with
-      this.trigger("map:init", this);
-      // The map data has loaded
-      this.map.on("map-data:load", function () { that.trigger("map:load", that); });
-      this.map.on("marker-unselected", function () { that.trigger("marker:unselected", that); });
-      this.map.on("map:detail-change", function () { that.trigger("map:detail-change", that); });
-    } else {
-      this.trigger("map:none", this);
-    }
-
-    // this._retrieveListings();
-  },
-
-  _initializeListings: function () {
-    this.listings = new sgmap.Listings();
-  },
-
-  _retrieveListings: function () {
-    var that = this;
-    this.listings.retrieve(this.data.id);
-  },
-
-  _retrieveEvents: function () {
-    // Allow passing a pre-existing event document, like in the mobile web app, or just an event id.
-    if (_.isObject(this.options.eventData)) {
-      _.defer(_.bind(this._initialize, this), this.options.eventData);
-    } else {
-      $.getJSON(sgmap.SGAPI_URL + "/events/" + this.options.eventData, _.bind(this._initialize, this));
-    }
-  },
-
-  /* MAP EVENT HANDLERS */
-  _onMapLoad: function() {
-    this.map._switchLevel = this.switch_level;
-
-    this._setupMarkerFormatter();
-    this._setupTooltipFormatter();
-    this._mapReady = true;
-    this._renderListingsOnMap(undefined, true);
-
-    this.map.on("click", this._onMarkerUnselect.bind(this));
-    this.map.on("zoomstart", this._onMapZoom.bind(this));
-    this.map.on("move", this._onMapMove.bind(this));
-
-  },
-
-  _onMarkerSelect: function(mk) {
-    this.listings.trigger("marker:selected", {mk : mk});
-  },
-
-  _onMarkerUnselect: function() {
-    this.unsetHover();
-    this.unsetSelected();
-    this.listings.trigger("marker:unselected");
-  },
-
-  _onMapZoom: function() {
-    this.unsetHover();
-    if (this.hovered_marker) {
-      this.hovered_marker.closeTooltip();
-    }
-  },
-
-  _onDetailChange: function() {
-    this.unsetSelected();
-    this.listings.trigger("marker:unselected");
-  },
-
-  _onMapMove: function(e) {
-    var that = this;
-    var throttledUpdate = _.throttle(function (e) {
-      that.map._updateVisibleMarkers(e.target.getZoom(), that.switch_level);
-    }, 250, { trailing: true });
-
-    throttledUpdate(e);
-  },
-
-  /* LISTINGS EVENT HANDLERS */
-  _onListingsUpdate: function() {
-    if (!this._listingsLoaded) {
-      this._listingsLoaded = true;
-      // Render listings *before* you start animating the listing view
-      this._renderListingsOnMap(undefined, true);
-      this.trigger("listings:load", this);
-    }
-    else {
-      this._renderListingsOnMap(undefined, true);
-      this.trigger("listings:update", this);
-    }
-  },
-
-  /* LISTING EVENT HANDLERS */
-  _onListingHover: function(mk) {
-    if (!this.map) return;
-    if (mk) {
-      if (this.map.current_layer == "row") {
-        this.hovered_marker = this.map.rowMarkerLayer.getByMapKey(mk);
-      }
-      else {
-        this.hovered_marker = this.map.sectionMarkerLayer.getByMapKey(mk);
-      }
-    }
-    if (this.hovered_marker) {
-      this.hovered_marker.openTooltip();
-    }
-  },
-
-  _onListingUnhover: function() {
-    this.unsetHover();
-  },
-
-  _onListingSelect: function(mk) {
-    if (!this.map) return;
-    if (mk) {
-      if (this.map.current_layer == "row") {
-        this.map.selected_marker = this.map.rowMarkerLayer.getByMapKey(mk);
-      }
-      else {
-        this.map.selected_marker = this.map.sectionMarkerLayer.getByMapKey(mk);
-      }
-    }
-    if (this.map.selected_marker) {
-      this.map.selected_marker.setSelected();
-    }
-  },
-
-  _onListingUnselect: function() {
-    if (!this.map) return;
-    this.unsetSelected();
-  },
-
-  unsetHover: function() {
-    if (this.hovered_marker) {
-      this.hovered_marker.closeTooltip();
-    }
-    this.hovered_marker = null;
-  },
-
-  unsetSelected: function () {
-    if (this.map.selected_marker) {
-      this.map.selected_marker.unsetSelected();
-    }
-    this.map.selected_marker = null;
-  },
-
-  render: function () {
-    return this;
-  },
-
-  _renderListingsOnMap: function (zoom, filters_changed) {
-    if (!this._mapReady) return;
-    if (!this._listingsLoaded) return;
-
-    if (zoom === undefined) zoom = this.map.getZoom();
-    if (filters_changed === undefined) filters_changed = false;
-
-    if (filters_changed === true) {
-      this.map.updateMarkers(this, zoom, this.listings);
-    }
-  },
-
-  registerPlugin: function (plugin) {
-    this.plugins.push(plugin);
-    plugin.call(this);
-  },
-
-  /*
-   * A function that returns a Leaflet Icon that will be used to render a marker
-   */
-  setMarkerFormatter: function (fn) { this.map.marker_formatter = fn; },
-  getMarkerFormatter: function () { return this.map.marker_formatter; },
-
-  _setupMarkerFormatter: function () {
-    this.setMarkerFormatter(function (data) {
-      var size = [24, 20, 18, 16, 14, 13, 11, 16][data.bucket];
-      return L.divIcon({
-        className: "marker marker" + data.bucket,
-        iconSize: L.point(size, size)
-      });
-    });
-  },
-
-  setTooltipFormatter: function (fn) { this.map.tooltip_formatter = fn;},
-  getTooltipFormatter: function () { return this.map.tooltip_formatter; },
-
-  tooltipFormatter: function (marker) {
-    var data = marker.data,
-        location = marker.getLatLng(),
-        map = marker._map,
-        mk = sgmap.parseMapKey(data.mapkey),
-        template_data = _.extend(data, {
-          section: mk.s.replace(/-/g, " ").toUpperCase(),
-          row: data.type == "row" && mk.r ? mk.r.replace(/-/g, " ").toUpperCase() : undefined
-        });
-
-    map.once("interaction:tooltip", function (tooltip) {
-      var direction = "right",
-          pt = map.locationPoint(location),
-          inner = tooltip.element.childNodes[0],
-          height = inner.offsetHeight,
-          offset = 15;
-      if (pt.x > map.dimensions.x / 2) {
-        direction = "left";
-      }
-      // The direction is of the dot relative to the tooltip
-      inner.setAttribute("class", "sgtooltip sgtooltip-" + (direction == "right" ? "left" : "right"));
-      inner.style.top = (-1 * Math.round(height / 2)) + "px";
-      inner.style.left = direction == "right" ? offset + "px":
-                            -1 * (inner.offsetWidth + offset) + "px";
-    });
-
-    var tooltip = document.createElement("div");
-    tooltip.className = "sgtooltip";
-    tooltip.innerHTML = sgmap.templates.tooltip(template_data);
-    return tooltip;
-  },
-
-  _setupTooltipFormatter: function () {
-    var that = this;
-    this.setTooltipFormatter(this.tooltipFormatter);
-  },
-
-  _getBuyUrlBuilder: function () {
-    var that = this;
-    return function (listing) {
-      var host = document.location.hostname,
-          l = listing.toJSON(),
-          proto = 'http' + (l.m == 'stubhub' && host == 'seatgeek.com' ? 's://' : '://'),
-          q = app.listings._quantityFilterValue,
-          params = {
-            tid: l.id,
-            eid: l.eid || that.data.id,
-            section: l.s,
-            row: l.r,
-            mk: l.mk,
-            quantity: q > 0 ? q : l.q,
-            price: l.pf,
-            baseprice: l.p,
-            w: l.w ? l.w : 0,
-            market: l.m,
-            region: l.rg ? l.rg : -1,
-            sg: that.map ? 1 : 0,
-            dq: l.dq ? l.dq : -1,
-            // rfuv: l.ranks.fuv ? l.ranks.fuv : -1,
-            // rfpf: l.ranks.fpf ? l.ranks.fpf : -1,
-            // rfdq: l.ranks.fdq ? l.ranks.fdq : -1,
-            // rupf: l.ranks.upf ? l.ranks.upf : -1,
-            // rudq: l.ranks.udq ? l.ranks.udq : -1,
-            gidx: l.gidx ? l.gidx : -1,
-            et: l.et
-          };
-
-      // HACK: horrible hack for the bing integration
-      if (window.IS_BING_INTEGRATION) {
-        params.bing = 1;
-      }
-
-      return proto + host + "/event/click/?" + $.param(params);
-    };
-  }
-
-});
-
-// TODO: sgmap.event and new sgmap.Event should have the same signature
-sgmap.event = function (el, evt_id, mapOptions) {
-  return new sgmap.EventView({ el: el, eventData: evt_id, mapOptions: mapOptions });
-};
-
-// Cross event search
-sgmap.EventsView = sgmap.EventView.extend({
-
-  _initializeListings: function () {
-    this.listings = new sgmap.SandcrabListings();
-  },
-
-  _setRoutingParams: function(venue, performers) {
-    this.routingParams = {
-      venue: venue,
-      performers: performers
-    }
-  },
-
-  _retrieveListings: function () {
-    // HACK: XEventRouter will call this for now
-    // this.listings.retrieve(this.eventsData);
-  },
-
-  _retrieveEvents: function () {
-    // TODO: figure out what to do with this (probably just delete)
-    // var that = this;
-    // $.getJSON(sgmap.SGAPI_URL + "/events", {
-    //     id: this.options.eventsData.join(","),
-    //     client_id: sgmap.SGAPI_CLIENT_ID
-    //   })
-    //   .done(function (data) {
-    //     that.eventsData = data.events;
-    //     that._initialize(data.events[0]);
-    //   });
-  }
-
-});
-
-sgmap.events = function (el, evts, mapOptions) {
-  return new sgmap.EventsView({ el: el, eventsData: evts, mapOptions: mapOptions });
-};
-
-;sgmap.Listing = Backbone.Model.extend({
-
-  // This is a bit confusing. Within the attributes of a model, there will be
-  // two ids: `id` and `uniqueId`. What we think of as a listing's id in the SG
-  // world will be in `id`, and `uniqueId` will contain an id that's guarenteed
-  // to be unique across markets. Additionally, the `id` property on the model
-  // will be populated by `uniqueId`. That means that `model.id` and
-  // `model.get("id")` will NOT be the same.
-  idAttribute: "uniqueId",
-
-  parse: function (resp, options) {
-    resp.uniqueId = resp.m + "-" + resp.id;
-    if (resp.mk) {
-      resp.parsed_mk = sgmap.parseMapKey(resp.mk);
-    }
-    resp.sf = sgmap.prettySection(resp.s);
-    resp.rf = sgmap.prettyRow(resp.r);
-    // HACK: Sandcrab does not have dq, only aq
-    if (resp.aq !== undefined && resp.aq !== null) {
-      resp.dq = Math.round(resp.aq);
-    }
-    resp.bucket = sgmap.calculateDealScoreBucket(resp.dq);
-
-    return resp;
-  }
-});
-
-sgmap.listingsWithLogos = function(data) {
-  var listings = data.listings;
-  var logos = data.seller_logos;
-  _.each(listings, function (l) {
-    for (var i = 0; i < logos.length; i += 1) {
-      var logo = logos[i];
-      if (logo.market == l.m && logo.broker_id == l.bi) {
-        l.seller_logo = logo.url;
-        l.retina_seller_logo = logo.retina_url;
-        return;
-      }
-    }
-    for (var i = 0; i < logos.length; i += 1) {
-      var logo = logos[i];
-      if (logo.market == l.m && !logo.broker_id) {
-        l.seller_logo = logo.url;
-        return;
-      }
-    }
-  });
-  return listings
-};
-
-sgmap.Listings = Backbone.Collection.extend({
-
-  model: sgmap.Listing,
-
-  // `models` contains all listings, `filtered` will contain the listings
-  // matching the current filters sorted in the same way as `models`, while
-  // `grouped` will contain all the listings from `filtered` but some will be
-  // folded into an `alt` property on the listing.
-  // `sorted` will contain the same listings as `grouped` but will be sorted
-  // with the current user-selected sort.
-  filtered: null,
-  grouped: null,
-  sorted: null,
-
-  _groupListings: true,
-
-  _quantityFilterValue: null,
-  _eticketsFilterValue: false,
-  _minPriceFilterValue: null,
-  _maxPriceFilterValue: null,
-  _marketsFilterValue: null,
-
-  PER_PAGE: 40,
-
-  initialize: function () {
-    this.filtered = [];
-    this.grouped = [];
-    this.sorted = [];
-    this.userFilters = {
-      "quantity": sgmap.filters.all(),
-      "etickets": sgmap.filters.all(),
-      "mobile-checkout": sgmap.filters.all(),
-      "market": sgmap.filters.all(),
-      "price": sgmap.filters.all()
-    };
-    this.userSort = [sgmap.sorts.price, "asc"];
-    this.on("reset", this._updateSublists);
-  },
-
-  createFilter: function (name, _default) {
-    _default = _default || sgmap.filters.all();
-    this.userFilters[name] = _default;
-  },
-
-  updateFilter: function (name, fn) {
-    if (!this.userFilters[name]) return;
-
-    this.userFilters[name] = fn;
-    _.defer(_.bind(this._updateSublists, this));
-  },
-
-  setQuantityFilter: function (x) {
-    this._quantityFilterValue = x;
-    this.updateFilter("quantity", sgmap.filters.quantity(x));
-  },
-
-  setEticketsFilter: function (x) {
-    this._eticketsFilterValue = x;
-    this.updateFilter("etickets", sgmap.filters.etickets(x));
-  },
-
-  setPriceFilter: function (min, max) {
-    this._minPriceFilterValue = min;
-    this._maxPriceFilterValue = max;
-    this.updateFilter("price", sgmap.filters.price(min, max));
-  },
-
-  setMarketsFilter: function (markets) {
-    this._marketsFilterValue = markets;
-    this.updateFilter("market", sgmap.filters.market(markets));
-  },
-
-  updateSort: function (fn, direction) {
-    direction = direction || "asc";
-    this.userSort = [fn, direction];
-    _.defer(_.bind(this._updateSublists, this));
-  },
-
-  setSort: function (name, direction) {
-    var fn = sgmap.sorts[name];
-    this.updateSort(fn, direction);
-  },
-
-  groupListings: function (yes) {
-    if (yes === undefined) return this._groupListings;
-    this._groupListings = !!yes;
-    _.defer(_.bind(this._updateSublists, this));
-  },
-
-  comparator: function (l) { return l.get("mk"); },
-
-  // Maintain the `filtered`, `sorted` and `grouped` arrays.
-  _updateSublists: function () {
-    var filters = _.unique(_.values(this.userFilters)),
-        filterslen = filters.length;
-    this.filtered = this.filter(function (l) {
-      for (var i = 0; i < filterslen; ++i) {
-        if (!filters[i](l)) {
-          return false;
-        }
-      }
-      return true;
-    });
-    if (this._groupListings) {
-      this.grouped = this._doGroupListings(this.filtered.slice(0), this._quantityFilterValue);
-    } else {
-      this.grouped = this.filtered.slice(0);
-      _.each(this.grouped, function (l, i) {
-        l.gidx = undefined;
-        l.alt = undefined;
-      });
-    }
-    var that = this,
-        sort = this.userSort[0];
-    if (this.userSort[1] == "desc") {
-      sort = function (l0, l1) { return that.userSort[0](l0, l1) * -1; };
-    }
-    this.sorted = this.grouped.slice(0).sort(sort);
-    this.trigger("listings:update");
-  },
-
-  // dedupes tickets across markets
-  _doGroupListings: function (ls, quantitySelected) {
-    var markets = [
-          "uberseat", "ticketsnow", "ticketnetwork", "razorgator",
-          "vividseats", "ticketcity", "empiretickets", "stubhub"
-        ],
-        marketLen = markets.length;
-
-    // alternatives will be sorted by priceWithFees ascending
-    ls.sort(function (a, b) {
-      // when price is the same, prefentially order by market/broker
-      if (a.get("pf") == b.get("pf")) {
-        var ai = _.indexOf(markets, a.get("m")),
-            bi = _.indexOf(markets, b.get("m"));
-        return (ai === -1 ? marketLen : ai) - (bi === -1 ? marketLen : bi);
-      }
-      return a.get("pf") - b.get("pf");
-    });
-
-    var grouped = _.groupBy(ls, function (l) {
-      return (l.get("mk") || l.get("s") + "_" + l.get("r")) + "--" +
-             (quantitySelected > 0 ? quantitySelected : l.get("q")) + "--" +
-             (l.get("et") ? 1 : 0);
-    });
-
-    return _.map(grouped, function (group) {
-      _.each(group, function (l, i) { l.gidx = i + 1; });
-      group[0].alt = group.slice(1);
-      return group[0];
-    });
-  },
-
-  page: function (page) {
-    page = page || 0;
-    var that = this,
-        deferred = _.extend({}, Backbone.Events);
-    _.defer(function () {
-      deferred.trigger("success", that.sorted.slice(page * that.PER_PAGE, (page + 1) * that.PER_PAGE));
-    });
-    return deferred;
-  },
-
-  pageCount: function () { return Math.ceil(this.sorted.length / this.PER_PAGE); },
-
-  listingsCount: function () { return this.length; },
-
-  filteredListingsCount: function () { return this.filtered.length; },
-
-  getSectionMarkerInfo: function () {
-    var key_buckets_map = _.groupBy(this.sorted, function (l) {
-      var mk = l.get("parsed_mk");
-      return mk ? "s:" + mk.s : "n";
-    });
-    delete key_buckets_map["n"];
-
-    return _.map(key_buckets_map, function (listings, mk) {
-      return {
-        mapkey: mk,
-        bucket: Math.min.apply(Math, _.map(listings, function (l) { return l.get("bucket"); })),
-        sort: Math.max.apply(Math, _.map(listings, function (l) { return l.get("dq"); })),
-        minPrice: Math.min.apply(Math, _.map(listings, function (l) { return l.get("pf"); })),
-        type: "section",
-        listings: listings,
-        listingsCount: listings.length
-      };
-    });
-  },
-
-  getRowMarkerInfo: function () {
-    var key_buckets_map = _.groupBy(this.sorted, function (l) {
-      return l.get("mk") || "n";
-    });
-    delete key_buckets_map["n"];
-
-    return _.map(key_buckets_map, function (listings, mk) {
-      return {
-        mapkey: mk,
-        bucket: Math.min.apply(Math, _.map(listings, function (l) { return l.get("bucket"); })),
-        sort: Math.max.apply(Math, _.map(listings, function (l) { return l.get("dq"); })),
-        minPrice: Math.min.apply(Math, _.map(listings, function (l) { return l.get("pf"); })),
-        type: "row",
-        listings: listings,
-        listingsCount: listings.length
-      };
-    });
-  },
-
-  retrieve: function (event_id) {
-    var that = this,
-        listings_url = sgmap.SGLISTINGS_URL + "?" + $.param({ id: event_id });
-    $.getJSON(listings_url, function (data) {
-      // HACK: sandcrab doesn't provide the deal_quality flag, this could
-      //       become a problem when sorting by DS ascending=
-      if (data.deal_quality || _.some(data.listings, function (l) { return !!l.aq; })) {
-        that.userSort = [sgmap.sorts.dealQuality, "asc"];
-      }
-      that.reset(sgmap.listingsWithLogos(data), { parse: true });
-    });
-  }
-
-});
-
-sgmap.filters = {
-  _all: function () { return true; },
-  all: function () { return this._all; },
-  quantity: function (q) {
-    q = parseInt(q, 10);
-    if (q === 0) {
-      return this.all();
-    }
-    return function (l) {
-      return _.indexOf(l.get("sp"), q) !== -1;
-    };
-  },
-  etickets: function (on) {
-    if (on === true) {
-      return function (l) {
-        return !!l.get("et");
-      };
-    } else {
-      return this.all();
-    }
-  },
-  price: function (min, max) {
-    return function (l) {
-      var pf = l.get("pf");
-      return pf <= max && pf >= min;
-    };
-  },
-  market: function (markets) {
-    if (!markets) {
-      return this.all();
-    }
-    return function (l) {
-      var m = l.get("m"),
-          i;
-      for (i = 0; i < markets.length; ++i) {
-        if (m === markets[i]) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-};
-
-sgmap.sorts = {
-  price: function (l0, l1) {
-    return l0.get("pf") - l1.get("pf");
-  },
-  dealQuality: function (l0, l1) {
-    var dq0 = l0.get("dq"),
-        dq1 = l1.get("dq");
-    if (dq0 === dq1) {
-      return sgmap.sorts.price(l0, l1);
-    }
-    if (dq0 === null) {
-      // only l1 has dq, l1 comes first
-      return 1;
-    }
-    if (dq1 === null) {
-      // only l0 has dq, l0 comes first
-      return -1;
-    }
-    return dq1 - dq0;
-  },
-  // TODO: make this sort faster, it's very slow right now. Too many fn calls.
-  market: function (l0, l1) {
-    var l0m = l0.get("m") == "uberseat" ? l0.get("bn") : l0.get("m"),
-        l1m = l1.get("m") == "uberseat" ? l1.get("bn") : l1.get("m"),
-        market_compare = l0m.localeCompare(l1m);
-    if (market_compare == 0) {
-      return sgmap.sorts.dealQuality(l0, l1);
-    }
-    return market_compare;
-  },
-  section: function (l0, l1) {
-    var sectionCompare = sgmap.numericCompare(l0.get("s"), l1.get("s"));
-    if (sectionCompare == 0) {
-      return sgmap.sorts.dealQuality(l0, l1);
-    }
-    return sectionCompare;
-  }
-};
-
-sgmap.SandcrabListings = Backbone.Collection.extend({
-
-  model: sgmap.Listing,
-
-  _eventsData: null,
-  _mapkeySummary: null,
-  _listingsCount: null,
-
-  _quantityFilterValue: null,
-  _eticketsFilterValue: false,
-  _minPriceFilterValue: null,
-  _maxPriceFilterValue: null,
-  _marketsFilterValue: null,
-
-  _sortName: "dealQuality",
-  _sortDirection: "asc",
-
-  PER_PAGE: 40,
-
-  initialize: function () {
-  },
-
-  // TODO: hook these up
-  createFilter: function (name, _default) { },
-  updateFilter: function (name, fn) { },
-  updateSort: function (fn, direction) { },
-
-  setQuantityFilter: function (x) {
-    this._quantityFilterValue = x;
-    this._updateSublists();
-  },
-
-  setEticketsFilter: function (x) {
-    this._eticketsFilterValue = x;
-    this._updateSublists();
-  },
-
-  setPriceFilter: function (min, max) {
-    this._minPriceFilterValue = min;
-    this._maxPriceFilterValue = max;
-    this._updateSublists();
-  },
-
-  setMarketsFilter: function (markets) {
-    this._marketsFilterValue = markets;
-    this._updateSublists();
-  },
-
-  setSort: function (name, direction) {
-    this._sortName = name;
-    this._sortDirection = direction;
-    this.userSort = [sgmap.sorts[name], direction];
-    this._updateSublists();
-  },
-
-  setEvents: function (events) {
-    this._eventsData = events;
-    this._updateSublists();
-  },
-
-  // TODO: can we still support this?
-  groupListings: function (yes) { },
-
-  page: function (page) {
-    page = page || 0;
-    var that = this,
-        deferred = _.extend({}, Backbone.Events),
-        start = page * that.PER_PAGE,
-        end = (page + 1) * that.PER_PAGE;
-    function respond () {
-      deferred.trigger("success", that.models.slice(start, end));
-    }
-    if (end > this.size()) {
-      // Sandcrab uses 1-indexed page numbers
-      this._request({ page: (page + 1) }).on("success", function (data) {
-        that.add(that._prepareListings(sgmap.listingsWithLogos(data)), { silent: true, parse: true });
-        // TODO: we're ignoring the marker summary for now
-        respond();
-      });
-    } else {
-      _.defer(respond);
-    }
-    return deferred;
-  },
-
-  pageCount: function () {
-    return Math.ceil(this._listingsCount / this.PER_PAGE);
-  },
-
-  listingsCount: function () { return this._listingsCount; },
-
-  // TODO: this is not correct, need to extend sandcrab to do it properly
-  filteredListingsCount: function () { return this._listingsCount; },
-
-  _setMapkeySummary: function (summary, statistics) {
-    this._listingsCount = statistics.count;
-    this._mapkeySummary = summary;
-    this._statistics = statistics;
-  },
-
-  getSectionMarkerInfo: function () {
-    var bySection = _.groupBy(this._mapkeySummary, function (sum, mk) {
-      var mk = sgmap.parseMapKey(mk);
-      return mk ? "s:" + mk.s : "n";
-    });
-    delete bySection["n"];
-
-    return _.map(bySection, function (summary, mk) {
-      var max_dq = Math.max.apply(Math, _.map(summary, function (x) { return parseInt(x.max_dq, 0); })),
-          min_price = Math.ceil(Math.min.apply(Math, _.pluck(summary, "min_price")));
-      return {
-        mapkey: mk,
-        bucket: sgmap.calculateDealScoreBucket(max_dq),
-        sort: max_dq,
-        minPrice: min_price,
-        type: "section",
-        listingsCount: _.reduce(_.pluck(summary, "count"), function (acc, x) { return acc + x; }, 0)
-      };
-    });
-  },
-
-  getRowMarkerInfo: function () {
-    var byRow = _.groupBy(this._mapkeySummary, function (sum, mk) {
-      return mk;
-    });
-
-    return _.map(byRow, function (summary, mk) {
-      var max_dq = Math.max.apply(Math, _.map(summary, function (x) { return parseInt(x.max_dq, 0); })),
-          min_price = Math.round(Math.min.apply(Math, _.pluck(summary, "min_price")));
-      return {
-        mapkey: mk,
-        bucket: sgmap.calculateDealScoreBucket(max_dq),
-        sort: max_dq,
-        minPrice: min_price,
-        type: "row",
-        listingsCount: _.reduce(_.pluck(summary, "count"), function (acc, x) { return acc + x; }, 0)
-      };
-    });
-  },
-
-  retrieve: function (events) {
-    this.setEvents(events);
-  },
-
-  // Not a great name, but sort of parallels the functionality of the method of the same name in Listings
-  _updateSublists: function () {
-    var that = this;
-    this._request().on("success", function (data) {
-      // If there is dq, or some listings have absolute deal quality
-      if (data.deal_quality || _.some(data.listings, function (l) { return !!l.aq; })) {
-        if (!that.userSort) {
-          that.userSort = [sgmap.sorts.dealQuality, "asc"];
-        }
-      // If there is not, then we make a second request
-      } else {
-        if (!that.userSort) {
-          that.setSort("price", "asc");
-        }
-      }
-      that._setMapkeySummary(data.mapkey_summary, data.statistics);
-      that.reset(that._prepareListings(sgmap.listingsWithLogos(data)), { parse: true });
-      that.sorted = that.models;
-      that.trigger("listings:update");
-    });
-  },
-
-  _request: function (params) {
-    params = _.extend({
-      event_id: _.pluck(this._eventsData, "id"),
-      sort: this._buildSortParameter(this._sortName, this._sortDirection),
-      per_page: this.PER_PAGE
-    }, params);
-    if (this._quantityFilterValue) {
-      params.split = this._quantityFilterValue;
-    }
-    if (this._eticketsFilterValue) {
-      params.eticket = "true";
-    }
-    if (this._minPriceFilterValue) {
-      params.min_price = this._minPriceFilterValue;
-    }
-    if (this._maxPriceFilterValue) {
-      params.max_price = this._maxPriceFilterValue;
-    }
-    if (this._marketsFilterValue) {
-      params.market = this._marketsFilterValue;
-    }
-    var that = this,
-        deferred = _.extend({}, Backbone.Events);
-    $.post(sgmap.SGSANDCRAB_URL, params, function (data) {
-      deferred.trigger("success", data);
-    });
-    return deferred;
-  },
-
-  _modeledRequest: function(params) {
-    var that = this;
-    var q = this._request(params);
-    var r = _.extend({}, Backbone.Events);
-    q.on("success", function(sectionListings) {
-      var preparedListings = that._prepareListings(sgmap.listingsWithLogos(sectionListings));
-      var modeledListings = _.map(preparedListings, function(l) {
-        return new sgmap.Listing(l, {parse: true});
-      })
-      r.trigger("success", modeledListings, sectionListings.statistics);
-    })
-    return r;
-  },
-
-  _prepareListings: function (listings) {
-    var that = this;
-    // HACK: give each listing a reference to its event data
-    _.each(listings, function (l) {
-      l.eventData = _.find(that._eventsData, function (e) { return l.eid === e.id; });
-    });
-    return listings;
-  },
-
-  _buildSortParameter: function (name, direction) {
-    name = ({ price: "total_price", dealQuality: "absolute_dq" })[name] || name;
-    if (name === "absolute_dq") {
-      direction = direction === "asc" ? "desc" : "asc";
-    }
-    return name + "." + direction;
-  }
-
-});
-
-;// Compatibility for iPad, iPhone, other touch-capable devices.
-// This will disable the mouse events for listings so they don't conflict
-// with the touch events.
-sgmap.isTouchCapable = ('ontouchstart' in document);
-
-// Map over a collection asynchronously using chained setTimeouts to give the
-// UI a chance to update. Returns a function which can be used to cancel the
-// iteration.
-sgmap.yieldingMap = function (xs, fn, done) {
-  var ret = [], i = 0, len = xs.length, start, timeout;
-
-  function cancel () {
-    clearTimeout(timeout);
-  }
-
-  function process () {
-    // Process the items in batch for 25ms, or while the result of
-    // calling `iterFn` on the current item is not false..
-    for (start = +new Date; i < len && ((+new Date) - start < 25); ++i) {
-      ret[i] = fn.call(xs[i], xs[i], i);
-    }
-    // When the 25ms is up, let the UI thread update by deferring the
-    // rest of the iteration.
-    if (i < len) {
-      timeout = setTimeout(process, 0);
-    } else if (typeof done === "function") {
-      done(ret);
-    }
-  }
-
-  timeout = setTimeout(process, 0);
-
-  return cancel;
-};
-
-// Invokes a function after the test is truthy.
-sgmap.when = function (test, then, period) {
-  var period = period || 50;
-  setTimeout(function check () {
-    if (test()) {
-      then();
-    } else {
-      setTimeout(check, period);
-    }
-  }, period);
-};
-
-sgmap.MAPKEYRE = /^s:([a-z0-9-]+)(?: r:([a-z0-9-]+))?$/i;
-
-sgmap.parseMapKey = function (key) {
-  var matches = key.match(sgmap.MAPKEYRE);
-  if (matches) {
-    if (matches[2]) {
-      return {s: matches[1], r: matches[2]};
-    }
-    return {s: matches[1]};
-  }
-  throw "Improperly formatted mapkey: " + key;
-};
-
-// TODO: implement these for real
-sgmap.prettySection = function (s) { return (s || "").toUpperCase(); };
-sgmap.prettyRow = function (r) { return (r || "").toUpperCase(); };
-
-sgmap.numberFormat = function (number) {
-  var amount = number.toString();
-  amount = amount.split("").reverse();
-
-  var output = "";
-  for (var i = 0; i <= amount.length - 1; i++) {
-    output = amount[i] + output;
-    if ((i + 1) % 3 == 0 && (amount.length - 1) !== i) {
-      output = ',' + output;
-    }
-  }
-  return output;
-};
-
-sgmap.isNumericSection = function (s) {
-  var int_version = parseInt(s).toString();
-  if (int_version === s) {
-    return true;
-  }
-  if (s.indexOf(int_version + ' ') == 0) {
-    // Handle sections like '307 308' as numerics
-    return true;
-  }
-  return false;
-};
-
-sgmap.calculateDealScoreBucket = (function () {
-  var dealScoreCutoffs = [88, 68, 50, 40, 30, 15, 0];
-  return function (dq) {
-    var bucket = 0;
-    if (dq !== undefined && dq !== null) {
-      for (; bucket < dealScoreCutoffs.length; ++bucket) {
-        if (dq >= dealScoreCutoffs[bucket]) {
-          break;
-        }
-      }
-    } else {
-      bucket = 7;
-    }
-    return bucket
-  };
-})();
-
-// Use numeric sort if both are numeric, otherwise localeCompare.
-sgmap.numericCompare = function (a, b) {
-  if (sgmap.isNumericSection(a) && sgmap.isNumericSection(b)) {
-    a = parseInt(a);
-    b = parseInt(b);
-    if (a < b) {
-      return -1;
-    }
-    if (b < a) {
-      return 1;
-    }
-    return 0;
-  }
-  return a.localeCompare(b);
-};
-
-sgmap.log = function () {
-  if (sgmap.DEBUG) {
-    try {
-      return root.console.log.apply(root.console, _.toArray(arguments));
-    } catch (e) {}
-  }
-};
-
-sgmap.pathToPoints = (function () {
-  // Path parsing logic borrowed from https://raw.github.com/DmitryBaranovskiy/raphael (MIT)
-  var pathCommand = /([achlmrqstvz])[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*)+)/ig,
-      pathValues = /(-?\d*\.?\d*(?:e[\-+]?\d+)?)[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*/ig,
-      p2s = /,?([achlmqrstvxz]),?/gi;
-  function parsePathString (pathString) {
-    var paramCounts = {a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0},
-        data = [];
-    String(pathString).replace(pathCommand, function (a, b, c) {
-        var params = [],
-            name = b.toLowerCase();
-        c.replace(pathValues, function (a, b) {
-            b && params.push(+b);
-        });
-        if (name == "m" && params.length > 2) {
-            data.push([b].concat(params.splice(0, 2)));
-            name = "l";
-            b = b == "m" ? "l" : "L";
-        }
-        if (name == "r") {
-            data.push([b].concat(params));
-        } else while (params.length >= paramCounts[name]) {
-            data.push([b].concat(params.splice(0, paramCounts[name])));
-            if (!paramCounts[name]) {
-                break;
-            }
-        }
-    });
-    return data;
-  }
-
-    //Calculate point along a cubic bezier where t is between 0 and 1
-  function bezierPoint (start, control_1, control_2, end, t) {
-    var point = [0, 0];
-
-    //Calculate weights for point influence
-    var w0 = Math.pow((1-t), 3);
-    var w1 = 3*t*Math.pow((1-t), 2);
-    var w2 = 3*Math.pow(t, 2)*(1-t);
-    var w3 = Math.pow(t, 3);
-
-    point[0] = w0*start[0] + w1*control_1[0] + w2*control_2[0] + w3*end[0];
-    point[1] = w0*start[1] + w1*control_1[1] + w2*control_2[1] + w3*end[1];
-
-    return point;
-  }
-
-  // Translate potentially relative path commands into absolute ones
-  function absolutizePathData (data) {
-    var accum = [],
-        // The first command must be a moveto
-        last = data[0],
-        c;
-    accum.push(data[0]);
-    for (var i = 1; i < data.length; ++i) {
-      c = data[i];
-      if (c[0] == "z") {
-        continue;
-      }
-      if (c[0] == "m" || c[0] == "l") {
-        c = [
-          c[0].toUpperCase(),
-          last[1] + c[1],
-          last[2] + c[2]
-        ];
-      }
-      if (c[0] == "h") {
-        c = [
-          "L",
-          last[1] + c[1],
-          last[2]
-        ];
-      }
-      if (c[0] == "v") {
-        c = [
-          "L",
-          last[1],
-          last[2] + c[1]
-        ];
-      }
-      if (c[0] == "V") {
-        c = [
-          "L",
-          last[1],
-          c[1]
-        ];
-      }
-      if (c[0] == "H") {
-        c = [
-          "L",
-          c[1],
-          last[2]
-        ];
-      }
-      //Handle curves
-      if (c[0] == "c" || c[0] == "C") {
-        var start = [last[1], last[2]];
-        var control_1 = [last[1] + c[1], last[2] + c[2]];
-        var control_2 = [last[1] + c[3], last[2] + c[4]];
-        var end = [last[1] + c[5], last[2] + c[6]];
-
-        if (c[0] == "C") {
-          control_1 = [c[1], c[2]];
-          control_2 = [c[3], c[4]];
-          end = [c[5], c[6]];
-        }
-
-        var subs = 20;
-        for (var j = 0; j < subs; j++) {
-          var t = j/subs;
-          var point = bezierPoint(start, control_1, control_2, end, t);
-          var new_c = [
-            "L",
-            point[0],
-            point[1]
-          ];
-          accum.push(new_c);
-          last = new_c;
-        }
-        c = [
-          "L",
-          end[0],
-          end[1]
-        ];
-      }
-
-      //TODO: Actually implement this as a curve
-      if (c[0] == "s") {
-        c = [
-          "L",
-          last[1] + c[3],
-          last[2] + c[4]
-        ];
-      }
-
-      accum.push(c);
-      last = c;
-    }
-    return accum;
-  }
-
-  // Currently unused, but maybe useful in the future (and I don't want to dive
-  // back into raphael to figure it out)
-  function pathToString (data) {
-    return data.join(",").replace(p2s, "$1");
-  }
-
-  // TODO: doesn't handle paths with curves
-  function pathToPoints (data) {
-    var polys = [],
-        p = [],
-        c;
-    for (var i = 0; i < data.length; ++i) {
-      c = data[i];
-      if (c[0] == "M") {
-        polys.push(p);
-        p = [];
-      }
-      else if (c[0] == "S") {
-        return [];
-      }
-      p.push([c[2], c[1]]);
-    }
-    polys.push(p);
-    return polys;
-  }
-
-  return function (pathString) {
-    return pathToPoints(absolutizePathData(parsePathString(pathString)));
-  };
-})();
-
-;    sgmap.views = {};
-
+// ;sgmap.EventView = Backbone.View.extend({
+//   map: null,
+//   _listingsLoaded: false,
+//   _mapReady: false,
+//   listings: null,
+//   listingsView: null,
+//   _listingsViewDefaultOptions: {},
+//   markers: null,
+//   marker_formatter: null,
+//   tooltip_formatter: null,
+//   scale_factor: 1,
+//   switch_level: 2,
+//   hovered_marker: null,
+//   selected_marker: null,
+
+//   initialize: function (options) {
+//     var that = this;
+
+//     this._initializeListings();
+
+//     this.on("all", function (evt) { sgmap.log("Event received: " + evt); });
+
+//     this.markers = [];
+//     this.plugins = [];
+
+//     //EventView Events
+//     this.on("map:load", this._onMapLoad.bind(this));
+//     this.on("map:detail-change", this._onDetailChange.bind(this));
+
+//     //Map Events
+//     this.on("marker:selected", this._onMarkerSelect.bind(this));
+
+
+//     //Listing Events
+//     this.listings.on("listings:update", this._onListingsUpdate.bind(this));
+
+//     this.listings.on("listings:hover", this._onListingHover.bind(this));
+//     this.listings.on("listings:unhover", this._onListingUnhover.bind(this));
+
+//     //ListingView Events
+//     this.listings.on("listings:select", this._onListingSelect.bind(this));
+//     this.listings.on("listings:unselect", this._onListingUnselect.bind(this));
+
+//     //ESC Event
+//     $(document).bind('keyup', function (e) {
+//       if (e.keyCode === 13 || e.keyCode === 27) {
+//         that._onMarkerUnselect();
+//       };
+//     });
+
+//     this._retrieveEvents();
+//   },
+
+//   _initialize: function (data) {
+//     var that = this;
+
+//     this.data = data;
+//     this.trigger("event:load");
+
+//     if (this.data.map) {
+//       console.log(this.data.map)
+//       this.map = sgmap.map(this.el, this.data.map.id, this.options.mapOptions);
+//       // The map is available to interact with
+//       this.trigger("map:init", this);
+//       // The map data has loaded
+//       this.map.on("map-data:load", function () { that.trigger("map:load", that); });
+//       this.map.on("marker-unselected", function () { that.trigger("marker:unselected", that); });
+//       this.map.on("map:detail-change", function () { that.trigger("map:detail-change", that); });
+//     } else {
+//       this.trigger("map:none", this);
+//     }
+
+//     // this._retrieveListings();
+//   },
+
+//   _initializeListings: function () {
+//     this.listings = new sgmap.Listings();
+//   },
+
+//   _retrieveListings: function () {
+//     var that = this;
+//     this.listings.retrieve(this.data.id);
+//   },
+
+//   _retrieveEvents: function () {
+//     // Allow passing a pre-existing event document, like in the mobile web app, or just an event id.
+//     if (_.isObject(this.options.eventData)) {
+//       _.defer(_.bind(this._initialize, this), this.options.eventData);
+//     } else {
+//       $.getJSON(sgmap.SGAPI_URL + "/events/" + this.options.eventData, _.bind(this._initialize, this));
+//     }
+//   },
+
+//   /* MAP EVENT HANDLERS */
+//   _onMapLoad: function() {
+//     this.map._switchLevel = this.switch_level;
+
+//     this._setupMarkerFormatter();
+//     this._setupTooltipFormatter();
+//     this._mapReady = true;
+//     this._renderListingsOnMap(undefined, true);
+
+//     this.map.on("click", this._onMarkerUnselect.bind(this));
+//     this.map.on("zoomstart", this._onMapZoom.bind(this));
+//     this.map.on("move", this._onMapMove.bind(this));
+
+//   },
+
+//   _onMarkerSelect: function(mk) {
+//     this.listings.trigger("marker:selected", {mk : mk});
+//   },
+
+//   _onMarkerUnselect: function() {
+//     this.unsetHover();
+//     this.unsetSelected();
+//     this.listings.trigger("marker:unselected");
+//   },
+
+//   _onMapZoom: function() {
+//     this.unsetHover();
+//     if (this.hovered_marker) {
+//       this.hovered_marker.closeTooltip();
+//     }
+//   },
+
+//   _onDetailChange: function() {
+//     this.unsetSelected();
+//     this.listings.trigger("marker:unselected");
+//   },
+
+//   _onMapMove: function(e) {
+//     var that = this;
+//     var throttledUpdate = _.throttle(function (e) {
+//       that.map._updateVisibleMarkers(e.target.getZoom(), that.switch_level);
+//     }, 250, { trailing: true });
+
+//     throttledUpdate(e);
+//   },
+
+//   /* LISTINGS EVENT HANDLERS */
+//   _onListingsUpdate: function() {
+//     if (!this._listingsLoaded) {
+//       this._listingsLoaded = true;
+//       // Render listings *before* you start animating the listing view
+//       this._renderListingsOnMap(undefined, true);
+//       this.trigger("listings:load", this);
+//     }
+//     else {
+//       this._renderListingsOnMap(undefined, true);
+//       this.trigger("listings:update", this);
+//     }
+//   },
+
+//   /* LISTING EVENT HANDLERS */
+//   _onListingHover: function(mk) {
+//     if (!this.map) return;
+//     if (mk) {
+//       if (this.map.current_layer == "row") {
+//         this.hovered_marker = this.map.rowMarkerLayer.getByMapKey(mk);
+//       }
+//       else {
+//         this.hovered_marker = this.map.sectionMarkerLayer.getByMapKey(mk);
+//       }
+//     }
+//     if (this.hovered_marker) {
+//       this.hovered_marker.openTooltip();
+//     }
+//   },
+
+//   _onListingUnhover: function() {
+//     this.unsetHover();
+//   },
+
+//   _onListingSelect: function(mk) {
+//     if (!this.map) return;
+//     if (mk) {
+//       if (this.map.current_layer == "row") {
+//         this.map.selected_marker = this.map.rowMarkerLayer.getByMapKey(mk);
+//       }
+//       else {
+//         this.map.selected_marker = this.map.sectionMarkerLayer.getByMapKey(mk);
+//       }
+//     }
+//     if (this.map.selected_marker) {
+//       this.map.selected_marker.setSelected();
+//     }
+//   },
+
+//   _onListingUnselect: function() {
+//     if (!this.map) return;
+//     this.unsetSelected();
+//   },
+
+//   unsetHover: function() {
+//     if (this.hovered_marker) {
+//       this.hovered_marker.closeTooltip();
+//     }
+//     this.hovered_marker = null;
+//   },
+
+//   unsetSelected: function () {
+//     if (this.map.selected_marker) {
+//       this.map.selected_marker.unsetSelected();
+//     }
+//     this.map.selected_marker = null;
+//   },
+
+//   render: function () {
+//     return this;
+//   },
+
+//   _renderListingsOnMap: function (zoom, filters_changed) {
+//     if (!this._mapReady) return;
+//     if (!this._listingsLoaded) return;
+
+//     if (zoom === undefined) zoom = this.map.getZoom();
+//     if (filters_changed === undefined) filters_changed = false;
+
+//     if (filters_changed === true) {
+//       this.map.updateMarkers(this, zoom, this.listings);
+//     }
+//   },
+
+//   registerPlugin: function (plugin) {
+//     this.plugins.push(plugin);
+//     plugin.call(this);
+//   },
+
+//   /*
+//    * A function that returns a Leaflet Icon that will be used to render a marker
+//    */
+//   setMarkerFormatter: function (fn) { this.map.marker_formatter = fn; },
+//   getMarkerFormatter: function () { return this.map.marker_formatter; },
+
+//   _setupMarkerFormatter: function () {
+//     this.setMarkerFormatter(function (data) {
+//       var size = [24, 20, 18, 16, 14, 13, 11, 16][data.bucket];
+//       return L.divIcon({
+//         className: "marker marker" + data.bucket,
+//         iconSize: L.point(size, size)
+//       });
+//     });
+//   },
+
+//   setTooltipFormatter: function (fn) { this.map.tooltip_formatter = fn;},
+//   getTooltipFormatter: function () { return this.map.tooltip_formatter; },
+
+//   tooltipFormatter: function (marker) {
+//     var data = marker.data,
+//         location = marker.getLatLng(),
+//         map = marker._map,
+//         mk = sgmap.parseMapKey(data.mapkey),
+//         template_data = _.extend(data, {
+//           section: mk.s.replace(/-/g, " ").toUpperCase(),
+//           row: data.type == "row" && mk.r ? mk.r.replace(/-/g, " ").toUpperCase() : undefined
+//         });
+
+//     map.once("interaction:tooltip", function (tooltip) {
+//       var direction = "right",
+//           pt = map.locationPoint(location),
+//           inner = tooltip.element.childNodes[0],
+//           height = inner.offsetHeight,
+//           offset = 15;
+//       if (pt.x > map.dimensions.x / 2) {
+//         direction = "left";
+//       }
+//       // The direction is of the dot relative to the tooltip
+//       inner.setAttribute("class", "sgtooltip sgtooltip-" + (direction == "right" ? "left" : "right"));
+//       inner.style.top = (-1 * Math.round(height / 2)) + "px";
+//       inner.style.left = direction == "right" ? offset + "px":
+//                             -1 * (inner.offsetWidth + offset) + "px";
+//     });
+
+//     var tooltip = document.createElement("div");
+//     tooltip.className = "sgtooltip";
+//     tooltip.innerHTML = sgmap.templates.tooltip(template_data);
+//     return tooltip;
+//   },
+
+//   _setupTooltipFormatter: function () {
+//     var that = this;
+//     this.setTooltipFormatter(this.tooltipFormatter);
+//   },
+
+//   _getBuyUrlBuilder: function () {
+//     var that = this;
+//     return function (listing) {
+//       var host = document.location.hostname,
+//           l = listing.toJSON(),
+//           proto = 'http' + (l.m == 'stubhub' && host == 'seatgeek.com' ? 's://' : '://'),
+//           q = app.listings._quantityFilterValue,
+//           params = {
+//             tid: l.id,
+//             eid: l.eid || that.data.id,
+//             section: l.s,
+//             row: l.r,
+//             mk: l.mk,
+//             quantity: q > 0 ? q : l.q,
+//             price: l.pf,
+//             baseprice: l.p,
+//             w: l.w ? l.w : 0,
+//             market: l.m,
+//             region: l.rg ? l.rg : -1,
+//             sg: that.map ? 1 : 0,
+//             dq: l.dq ? l.dq : -1,
+//             // rfuv: l.ranks.fuv ? l.ranks.fuv : -1,
+//             // rfpf: l.ranks.fpf ? l.ranks.fpf : -1,
+//             // rfdq: l.ranks.fdq ? l.ranks.fdq : -1,
+//             // rupf: l.ranks.upf ? l.ranks.upf : -1,
+//             // rudq: l.ranks.udq ? l.ranks.udq : -1,
+//             gidx: l.gidx ? l.gidx : -1,
+//             et: l.et
+//           };
+
+//       // HACK: horrible hack for the bing integration
+//       if (window.IS_BING_INTEGRATION) {
+//         params.bing = 1;
+//       }
+
+//       return proto + host + "/event/click/?" + $.param(params);
+//     };
+//   }
+
+// });
+
+// // TODO: sgmap.event and new sgmap.Event should have the same signature
+// sgmap.event = function (el, evt_id, mapOptions) {
+//   return new sgmap.EventView({ el: el, eventData: evt_id, mapOptions: mapOptions });
+// };
+
+// // Cross event search
+// sgmap.EventsView = sgmap.EventView.extend({
+
+//   _initializeListings: function () {
+//     this.listings = new sgmap.SandcrabListings();
+//   },
+
+//   _setRoutingParams: function(venue, performers) {
+//     this.routingParams = {
+//       venue: venue,
+//       performers: performers
+//     }
+//   },
+
+//   _retrieveListings: function () {
+//     // HACK: XEventRouter will call this for now
+//     // this.listings.retrieve(this.eventsData);
+//   },
+
+//   _retrieveEvents: function () {
+//     // TODO: figure out what to do with this (probably just delete)
+//     // var that = this;
+//     // $.getJSON(sgmap.SGAPI_URL + "/events", {
+//     //     id: this.options.eventsData.join(","),
+//     //     client_id: sgmap.SGAPI_CLIENT_ID
+//     //   })
+//     //   .done(function (data) {
+//     //     that.eventsData = data.events;
+//     //     that._initialize(data.events[0]);
+//     //   });
+//   }
+
+// });
+
+// sgmap.events = function (el, evts, mapOptions) {
+//   return new sgmap.EventsView({ el: el, eventsData: evts, mapOptions: mapOptions });
+// };
+
+// ;sgmap.Listing = Backbone.Model.extend({
+
+//   // This is a bit confusing. Within the attributes of a model, there will be
+//   // two ids: `id` and `uniqueId`. What we think of as a listing's id in the SG
+//   // world will be in `id`, and `uniqueId` will contain an id that's guarenteed
+//   // to be unique across markets. Additionally, the `id` property on the model
+//   // will be populated by `uniqueId`. That means that `model.id` and
+//   // `model.get("id")` will NOT be the same.
+//   idAttribute: "uniqueId",
+
+//   parse: function (resp, options) {
+//     resp.uniqueId = resp.m + "-" + resp.id;
+//     if (resp.mk) {
+//       resp.parsed_mk = sgmap.parseMapKey(resp.mk);
+//     }
+//     resp.sf = sgmap.prettySection(resp.s);
+//     resp.rf = sgmap.prettyRow(resp.r);
+//     // HACK: Sandcrab does not have dq, only aq
+//     if (resp.aq !== undefined && resp.aq !== null) {
+//       resp.dq = Math.round(resp.aq);
+//     }
+//     resp.bucket = sgmap.calculateDealScoreBucket(resp.dq);
+
+//     return resp;
+//   }
+// });
+
+// sgmap.listingsWithLogos = function(data) {
+//   var listings = data.listings;
+//   var logos = data.seller_logos;
+//   _.each(listings, function (l) {
+//     for (var i = 0; i < logos.length; i += 1) {
+//       var logo = logos[i];
+//       if (logo.market == l.m && logo.broker_id == l.bi) {
+//         l.seller_logo = logo.url;
+//         l.retina_seller_logo = logo.retina_url;
+//         return;
+//       }
+//     }
+//     for (var i = 0; i < logos.length; i += 1) {
+//       var logo = logos[i];
+//       if (logo.market == l.m && !logo.broker_id) {
+//         l.seller_logo = logo.url;
+//         return;
+//       }
+//     }
+//   });
+//   return listings
+// };
+
+// sgmap.Listings = Backbone.Collection.extend({
+
+//   model: sgmap.Listing,
+
+//   // `models` contains all listings, `filtered` will contain the listings
+//   // matching the current filters sorted in the same way as `models`, while
+//   // `grouped` will contain all the listings from `filtered` but some will be
+//   // folded into an `alt` property on the listing.
+//   // `sorted` will contain the same listings as `grouped` but will be sorted
+//   // with the current user-selected sort.
+//   filtered: null,
+//   grouped: null,
+//   sorted: null,
+
+//   _groupListings: true,
+
+//   _quantityFilterValue: null,
+//   _eticketsFilterValue: false,
+//   _minPriceFilterValue: null,
+//   _maxPriceFilterValue: null,
+//   _marketsFilterValue: null,
+
+//   PER_PAGE: 40,
+
+//   initialize: function () {
+//     this.filtered = [];
+//     this.grouped = [];
+//     this.sorted = [];
+//     this.userFilters = {
+//       "quantity": sgmap.filters.all(),
+//       "etickets": sgmap.filters.all(),
+//       "mobile-checkout": sgmap.filters.all(),
+//       "market": sgmap.filters.all(),
+//       "price": sgmap.filters.all()
+//     };
+//     this.userSort = [sgmap.sorts.price, "asc"];
+//     this.on("reset", this._updateSublists);
+//   },
+
+//   createFilter: function (name, _default) {
+//     _default = _default || sgmap.filters.all();
+//     this.userFilters[name] = _default;
+//   },
+
+//   updateFilter: function (name, fn) {
+//     if (!this.userFilters[name]) return;
+
+//     this.userFilters[name] = fn;
+//     _.defer(_.bind(this._updateSublists, this));
+//   },
+
+//   setQuantityFilter: function (x) {
+//     this._quantityFilterValue = x;
+//     this.updateFilter("quantity", sgmap.filters.quantity(x));
+//   },
+
+//   setEticketsFilter: function (x) {
+//     this._eticketsFilterValue = x;
+//     this.updateFilter("etickets", sgmap.filters.etickets(x));
+//   },
+
+//   setPriceFilter: function (min, max) {
+//     this._minPriceFilterValue = min;
+//     this._maxPriceFilterValue = max;
+//     this.updateFilter("price", sgmap.filters.price(min, max));
+//   },
+
+//   setMarketsFilter: function (markets) {
+//     this._marketsFilterValue = markets;
+//     this.updateFilter("market", sgmap.filters.market(markets));
+//   },
+
+//   updateSort: function (fn, direction) {
+//     direction = direction || "asc";
+//     this.userSort = [fn, direction];
+//     _.defer(_.bind(this._updateSublists, this));
+//   },
+
+//   setSort: function (name, direction) {
+//     var fn = sgmap.sorts[name];
+//     this.updateSort(fn, direction);
+//   },
+
+//   groupListings: function (yes) {
+//     if (yes === undefined) return this._groupListings;
+//     this._groupListings = !!yes;
+//     _.defer(_.bind(this._updateSublists, this));
+//   },
+
+//   comparator: function (l) { return l.get("mk"); },
+
+//   // Maintain the `filtered`, `sorted` and `grouped` arrays.
+//   _updateSublists: function () {
+//     var filters = _.unique(_.values(this.userFilters)),
+//         filterslen = filters.length;
+//     this.filtered = this.filter(function (l) {
+//       for (var i = 0; i < filterslen; ++i) {
+//         if (!filters[i](l)) {
+//           return false;
+//         }
+//       }
+//       return true;
+//     });
+//     if (this._groupListings) {
+//       this.grouped = this._doGroupListings(this.filtered.slice(0), this._quantityFilterValue);
+//     } else {
+//       this.grouped = this.filtered.slice(0);
+//       _.each(this.grouped, function (l, i) {
+//         l.gidx = undefined;
+//         l.alt = undefined;
+//       });
+//     }
+//     var that = this,
+//         sort = this.userSort[0];
+//     if (this.userSort[1] == "desc") {
+//       sort = function (l0, l1) { return that.userSort[0](l0, l1) * -1; };
+//     }
+//     this.sorted = this.grouped.slice(0).sort(sort);
+//     this.trigger("listings:update");
+//   },
+
+//   // dedupes tickets across markets
+//   _doGroupListings: function (ls, quantitySelected) {
+//     var markets = [
+//           "uberseat", "ticketsnow", "ticketnetwork", "razorgator",
+//           "vividseats", "ticketcity", "empiretickets", "stubhub"
+//         ],
+//         marketLen = markets.length;
+
+//     // alternatives will be sorted by priceWithFees ascending
+//     ls.sort(function (a, b) {
+//       // when price is the same, prefentially order by market/broker
+//       if (a.get("pf") == b.get("pf")) {
+//         var ai = _.indexOf(markets, a.get("m")),
+//             bi = _.indexOf(markets, b.get("m"));
+//         return (ai === -1 ? marketLen : ai) - (bi === -1 ? marketLen : bi);
+//       }
+//       return a.get("pf") - b.get("pf");
+//     });
+
+//     var grouped = _.groupBy(ls, function (l) {
+//       return (l.get("mk") || l.get("s") + "_" + l.get("r")) + "--" +
+//              (quantitySelected > 0 ? quantitySelected : l.get("q")) + "--" +
+//              (l.get("et") ? 1 : 0);
+//     });
+
+//     return _.map(grouped, function (group) {
+//       _.each(group, function (l, i) { l.gidx = i + 1; });
+//       group[0].alt = group.slice(1);
+//       return group[0];
+//     });
+//   },
+
+//   page: function (page) {
+//     page = page || 0;
+//     var that = this,
+//         deferred = _.extend({}, Backbone.Events);
+//     _.defer(function () {
+//       deferred.trigger("success", that.sorted.slice(page * that.PER_PAGE, (page + 1) * that.PER_PAGE));
+//     });
+//     return deferred;
+//   },
+
+//   pageCount: function () { return Math.ceil(this.sorted.length / this.PER_PAGE); },
+
+//   listingsCount: function () { return this.length; },
+
+//   filteredListingsCount: function () { return this.filtered.length; },
+
+//   getSectionMarkerInfo: function () {
+//     var key_buckets_map = _.groupBy(this.sorted, function (l) {
+//       var mk = l.get("parsed_mk");
+//       return mk ? "s:" + mk.s : "n";
+//     });
+//     delete key_buckets_map["n"];
+
+//     return _.map(key_buckets_map, function (listings, mk) {
+//       return {
+//         mapkey: mk,
+//         bucket: Math.min.apply(Math, _.map(listings, function (l) { return l.get("bucket"); })),
+//         sort: Math.max.apply(Math, _.map(listings, function (l) { return l.get("dq"); })),
+//         minPrice: Math.min.apply(Math, _.map(listings, function (l) { return l.get("pf"); })),
+//         type: "section",
+//         listings: listings,
+//         listingsCount: listings.length
+//       };
+//     });
+//   },
+
+//   getRowMarkerInfo: function () {
+//     var key_buckets_map = _.groupBy(this.sorted, function (l) {
+//       return l.get("mk") || "n";
+//     });
+//     delete key_buckets_map["n"];
+
+//     return _.map(key_buckets_map, function (listings, mk) {
+//       return {
+//         mapkey: mk,
+//         bucket: Math.min.apply(Math, _.map(listings, function (l) { return l.get("bucket"); })),
+//         sort: Math.max.apply(Math, _.map(listings, function (l) { return l.get("dq"); })),
+//         minPrice: Math.min.apply(Math, _.map(listings, function (l) { return l.get("pf"); })),
+//         type: "row",
+//         listings: listings,
+//         listingsCount: listings.length
+//       };
+//     });
+//   },
+
+//   retrieve: function (event_id) {
+//     var that = this,
+//         listings_url = sgmap.SGLISTINGS_URL + "?" + $.param({ id: event_id });
+//     $.getJSON(listings_url, function (data) {
+//       // HACK: sandcrab doesn't provide the deal_quality flag, this could
+//       //       become a problem when sorting by DS ascending=
+//       if (data.deal_quality || _.some(data.listings, function (l) { return !!l.aq; })) {
+//         that.userSort = [sgmap.sorts.dealQuality, "asc"];
+//       }
+//       that.reset(sgmap.listingsWithLogos(data), { parse: true });
+//     });
+//   }
+
+// });
+
+// sgmap.filters = {
+//   _all: function () { return true; },
+//   all: function () { return this._all; },
+//   quantity: function (q) {
+//     q = parseInt(q, 10);
+//     if (q === 0) {
+//       return this.all();
+//     }
+//     return function (l) {
+//       return _.indexOf(l.get("sp"), q) !== -1;
+//     };
+//   },
+//   etickets: function (on) {
+//     if (on === true) {
+//       return function (l) {
+//         return !!l.get("et");
+//       };
+//     } else {
+//       return this.all();
+//     }
+//   },
+//   price: function (min, max) {
+//     return function (l) {
+//       var pf = l.get("pf");
+//       return pf <= max && pf >= min;
+//     };
+//   },
+//   market: function (markets) {
+//     if (!markets) {
+//       return this.all();
+//     }
+//     return function (l) {
+//       var m = l.get("m"),
+//           i;
+//       for (i = 0; i < markets.length; ++i) {
+//         if (m === markets[i]) {
+//           return true;
+//         }
+//       }
+//       return false;
+//     }
+//   }
+// };
+
+// sgmap.sorts = {
+//   price: function (l0, l1) {
+//     return l0.get("pf") - l1.get("pf");
+//   },
+//   dealQuality: function (l0, l1) {
+//     var dq0 = l0.get("dq"),
+//         dq1 = l1.get("dq");
+//     if (dq0 === dq1) {
+//       return sgmap.sorts.price(l0, l1);
+//     }
+//     if (dq0 === null) {
+//       // only l1 has dq, l1 comes first
+//       return 1;
+//     }
+//     if (dq1 === null) {
+//       // only l0 has dq, l0 comes first
+//       return -1;
+//     }
+//     return dq1 - dq0;
+//   },
+//   // TODO: make this sort faster, it's very slow right now. Too many fn calls.
+//   market: function (l0, l1) {
+//     var l0m = l0.get("m") == "uberseat" ? l0.get("bn") : l0.get("m"),
+//         l1m = l1.get("m") == "uberseat" ? l1.get("bn") : l1.get("m"),
+//         market_compare = l0m.localeCompare(l1m);
+//     if (market_compare == 0) {
+//       return sgmap.sorts.dealQuality(l0, l1);
+//     }
+//     return market_compare;
+//   },
+//   section: function (l0, l1) {
+//     var sectionCompare = sgmap.numericCompare(l0.get("s"), l1.get("s"));
+//     if (sectionCompare == 0) {
+//       return sgmap.sorts.dealQuality(l0, l1);
+//     }
+//     return sectionCompare;
+//   }
+// };
+
+// sgmap.SandcrabListings = Backbone.Collection.extend({
+
+//   model: sgmap.Listing,
+
+//   _eventsData: null,
+//   _mapkeySummary: null,
+//   _listingsCount: null,
+
+//   _quantityFilterValue: null,
+//   _eticketsFilterValue: false,
+//   _minPriceFilterValue: null,
+//   _maxPriceFilterValue: null,
+//   _marketsFilterValue: null,
+
+//   _sortName: "dealQuality",
+//   _sortDirection: "asc",
+
+//   PER_PAGE: 40,
+
+//   initialize: function () {
+//   },
+
+//   // TODO: hook these up
+//   createFilter: function (name, _default) { },
+//   updateFilter: function (name, fn) { },
+//   updateSort: function (fn, direction) { },
+
+//   setQuantityFilter: function (x) {
+//     this._quantityFilterValue = x;
+//     this._updateSublists();
+//   },
+
+//   setEticketsFilter: function (x) {
+//     this._eticketsFilterValue = x;
+//     this._updateSublists();
+//   },
+
+//   setPriceFilter: function (min, max) {
+//     this._minPriceFilterValue = min;
+//     this._maxPriceFilterValue = max;
+//     this._updateSublists();
+//   },
+
+//   setMarketsFilter: function (markets) {
+//     this._marketsFilterValue = markets;
+//     this._updateSublists();
+//   },
+
+//   setSort: function (name, direction) {
+//     this._sortName = name;
+//     this._sortDirection = direction;
+//     this.userSort = [sgmap.sorts[name], direction];
+//     this._updateSublists();
+//   },
+
+//   setEvents: function (events) {
+//     this._eventsData = events;
+//     this._updateSublists();
+//   },
+
+//   // TODO: can we still support this?
+//   groupListings: function (yes) { },
+
+//   page: function (page) {
+//     page = page || 0;
+//     var that = this,
+//         deferred = _.extend({}, Backbone.Events),
+//         start = page * that.PER_PAGE,
+//         end = (page + 1) * that.PER_PAGE;
+//     function respond () {
+//       deferred.trigger("success", that.models.slice(start, end));
+//     }
+//     if (end > this.size()) {
+//       // Sandcrab uses 1-indexed page numbers
+//       this._request({ page: (page + 1) }).on("success", function (data) {
+//         that.add(that._prepareListings(sgmap.listingsWithLogos(data)), { silent: true, parse: true });
+//         // TODO: we're ignoring the marker summary for now
+//         respond();
+//       });
+//     } else {
+//       _.defer(respond);
+//     }
+//     return deferred;
+//   },
+
+//   pageCount: function () {
+//     return Math.ceil(this._listingsCount / this.PER_PAGE);
+//   },
+
+//   listingsCount: function () { return this._listingsCount; },
+
+//   // TODO: this is not correct, need to extend sandcrab to do it properly
+//   filteredListingsCount: function () { return this._listingsCount; },
+
+//   _setMapkeySummary: function (summary, statistics) {
+//     this._listingsCount = statistics.count;
+//     this._mapkeySummary = summary;
+//     this._statistics = statistics;
+//   },
+
+//   getSectionMarkerInfo: function () {
+//     var bySection = _.groupBy(this._mapkeySummary, function (sum, mk) {
+//       var mk = sgmap.parseMapKey(mk);
+//       return mk ? "s:" + mk.s : "n";
+//     });
+//     delete bySection["n"];
+
+//     return _.map(bySection, function (summary, mk) {
+//       var max_dq = Math.max.apply(Math, _.map(summary, function (x) { return parseInt(x.max_dq, 0); })),
+//           min_price = Math.ceil(Math.min.apply(Math, _.pluck(summary, "min_price")));
+//       return {
+//         mapkey: mk,
+//         bucket: sgmap.calculateDealScoreBucket(max_dq),
+//         sort: max_dq,
+//         minPrice: min_price,
+//         type: "section",
+//         listingsCount: _.reduce(_.pluck(summary, "count"), function (acc, x) { return acc + x; }, 0)
+//       };
+//     });
+//   },
+
+//   getRowMarkerInfo: function () {
+//     var byRow = _.groupBy(this._mapkeySummary, function (sum, mk) {
+//       return mk;
+//     });
+
+//     return _.map(byRow, function (summary, mk) {
+//       var max_dq = Math.max.apply(Math, _.map(summary, function (x) { return parseInt(x.max_dq, 0); })),
+//           min_price = Math.round(Math.min.apply(Math, _.pluck(summary, "min_price")));
+//       return {
+//         mapkey: mk,
+//         bucket: sgmap.calculateDealScoreBucket(max_dq),
+//         sort: max_dq,
+//         minPrice: min_price,
+//         type: "row",
+//         listingsCount: _.reduce(_.pluck(summary, "count"), function (acc, x) { return acc + x; }, 0)
+//       };
+//     });
+//   },
+
+//   retrieve: function (events) {
+//     this.setEvents(events);
+//   },
+
+//   // Not a great name, but sort of parallels the functionality of the method of the same name in Listings
+//   _updateSublists: function () {
+//     var that = this;
+//     this._request().on("success", function (data) {
+//       // If there is dq, or some listings have absolute deal quality
+//       if (data.deal_quality || _.some(data.listings, function (l) { return !!l.aq; })) {
+//         if (!that.userSort) {
+//           that.userSort = [sgmap.sorts.dealQuality, "asc"];
+//         }
+//       // If there is not, then we make a second request
+//       } else {
+//         if (!that.userSort) {
+//           that.setSort("price", "asc");
+//         }
+//       }
+//       that._setMapkeySummary(data.mapkey_summary, data.statistics);
+//       that.reset(that._prepareListings(sgmap.listingsWithLogos(data)), { parse: true });
+//       that.sorted = that.models;
+//       that.trigger("listings:update");
+//     });
+//   },
+
+//   _request: function (params) {
+//     params = _.extend({
+//       event_id: _.pluck(this._eventsData, "id"),
+//       sort: this._buildSortParameter(this._sortName, this._sortDirection),
+//       per_page: this.PER_PAGE
+//     }, params);
+//     if (this._quantityFilterValue) {
+//       params.split = this._quantityFilterValue;
+//     }
+//     if (this._eticketsFilterValue) {
+//       params.eticket = "true";
+//     }
+//     if (this._minPriceFilterValue) {
+//       params.min_price = this._minPriceFilterValue;
+//     }
+//     if (this._maxPriceFilterValue) {
+//       params.max_price = this._maxPriceFilterValue;
+//     }
+//     if (this._marketsFilterValue) {
+//       params.market = this._marketsFilterValue;
+//     }
+//     var that = this,
+//         deferred = _.extend({}, Backbone.Events);
+//     $.post(sgmap.SGSANDCRAB_URL, params, function (data) {
+//       deferred.trigger("success", data);
+//     });
+//     return deferred;
+//   },
+
+//   _modeledRequest: function(params) {
+//     var that = this;
+//     var q = this._request(params);
+//     var r = _.extend({}, Backbone.Events);
+//     q.on("success", function(sectionListings) {
+//       var preparedListings = that._prepareListings(sgmap.listingsWithLogos(sectionListings));
+//       var modeledListings = _.map(preparedListings, function(l) {
+//         return new sgmap.Listing(l, {parse: true});
+//       })
+//       r.trigger("success", modeledListings, sectionListings.statistics);
+//     })
+//     return r;
+//   },
+
+//   _prepareListings: function (listings) {
+//     var that = this;
+//     // HACK: give each listing a reference to its event data
+//     _.each(listings, function (l) {
+//       l.eventData = _.find(that._eventsData, function (e) { return l.eid === e.id; });
+//     });
+//     return listings;
+//   },
+
+//   _buildSortParameter: function (name, direction) {
+//     name = ({ price: "total_price", dealQuality: "absolute_dq" })[name] || name;
+//     if (name === "absolute_dq") {
+//       direction = direction === "asc" ? "desc" : "asc";
+//     }
+//     return name + "." + direction;
+//   }
+
+// });
+
+// ;// Compatibility for iPad, iPhone, other touch-capable devices.
+// // This will disable the mouse events for listings so they don't conflict
+// // with the touch events.
+// sgmap.isTouchCapable = ('ontouchstart' in document);
+
+// // Map over a collection asynchronously using chained setTimeouts to give the
+// // UI a chance to update. Returns a function which can be used to cancel the
+// // iteration.
+// sgmap.yieldingMap = function (xs, fn, done) {
+//   var ret = [], i = 0, len = xs.length, start, timeout;
+
+//   function cancel () {
+//     clearTimeout(timeout);
+//   }
+
+//   function process () {
+//     // Process the items in batch for 25ms, or while the result of
+//     // calling `iterFn` on the current item is not false..
+//     for (start = +new Date; i < len && ((+new Date) - start < 25); ++i) {
+//       ret[i] = fn.call(xs[i], xs[i], i);
+//     }
+//     // When the 25ms is up, let the UI thread update by deferring the
+//     // rest of the iteration.
+//     if (i < len) {
+//       timeout = setTimeout(process, 0);
+//     } else if (typeof done === "function") {
+//       done(ret);
+//     }
+//   }
+
+//   timeout = setTimeout(process, 0);
+
+//   return cancel;
+// };
+
+// // Invokes a function after the test is truthy.
+// sgmap.when = function (test, then, period) {
+//   var period = period || 50;
+//   setTimeout(function check () {
+//     if (test()) {
+//       then();
+//     } else {
+//       setTimeout(check, period);
+//     }
+//   }, period);
+// };
+
+// sgmap.MAPKEYRE = /^s:([a-z0-9-]+)(?: r:([a-z0-9-]+))?$/i;
+
+// sgmap.parseMapKey = function (key) {
+//   var matches = key.match(sgmap.MAPKEYRE);
+//   if (matches) {
+//     if (matches[2]) {
+//       return {s: matches[1], r: matches[2]};
+//     }
+//     return {s: matches[1]};
+//   }
+//   throw "Improperly formatted mapkey: " + key;
+// };
+
+// // TODO: implement these for real
+// sgmap.prettySection = function (s) { return (s || "").toUpperCase(); };
+// sgmap.prettyRow = function (r) { return (r || "").toUpperCase(); };
+
+// sgmap.numberFormat = function (number) {
+//   var amount = number.toString();
+//   amount = amount.split("").reverse();
+
+//   var output = "";
+//   for (var i = 0; i <= amount.length - 1; i++) {
+//     output = amount[i] + output;
+//     if ((i + 1) % 3 == 0 && (amount.length - 1) !== i) {
+//       output = ',' + output;
+//     }
+//   }
+//   return output;
+// };
+
+// sgmap.isNumericSection = function (s) {
+//   var int_version = parseInt(s).toString();
+//   if (int_version === s) {
+//     return true;
+//   }
+//   if (s.indexOf(int_version + ' ') == 0) {
+//     // Handle sections like '307 308' as numerics
+//     return true;
+//   }
+//   return false;
+// };
+
+// sgmap.calculateDealScoreBucket = (function () {
+//   var dealScoreCutoffs = [88, 68, 50, 40, 30, 15, 0];
+//   return function (dq) {
+//     var bucket = 0;
+//     if (dq !== undefined && dq !== null) {
+//       for (; bucket < dealScoreCutoffs.length; ++bucket) {
+//         if (dq >= dealScoreCutoffs[bucket]) {
+//           break;
+//         }
+//       }
+//     } else {
+//       bucket = 7;
+//     }
+//     return bucket
+//   };
+// })();
+
+// // Use numeric sort if both are numeric, otherwise localeCompare.
+// sgmap.numericCompare = function (a, b) {
+//   if (sgmap.isNumericSection(a) && sgmap.isNumericSection(b)) {
+//     a = parseInt(a);
+//     b = parseInt(b);
+//     if (a < b) {
+//       return -1;
+//     }
+//     if (b < a) {
+//       return 1;
+//     }
+//     return 0;
+//   }
+//   return a.localeCompare(b);
+// };
+
+// sgmap.log = function () {
+//   if (sgmap.DEBUG) {
+//     try {
+//       return root.console.log.apply(root.console, _.toArray(arguments));
+//     } catch (e) {}
+//   }
+// };
+
+// sgmap.pathToPoints = (function () {
+//   // Path parsing logic borrowed from https://raw.github.com/DmitryBaranovskiy/raphael (MIT)
+//   var pathCommand = /([achlmrqstvz])[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*)+)/ig,
+//       pathValues = /(-?\d*\.?\d*(?:e[\-+]?\d+)?)[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*,?[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029]*/ig,
+//       p2s = /,?([achlmqrstvxz]),?/gi;
+//   function parsePathString (pathString) {
+//     var paramCounts = {a: 7, c: 6, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, z: 0},
+//         data = [];
+//     String(pathString).replace(pathCommand, function (a, b, c) {
+//         var params = [],
+//             name = b.toLowerCase();
+//         c.replace(pathValues, function (a, b) {
+//             b && params.push(+b);
+//         });
+//         if (name == "m" && params.length > 2) {
+//             data.push([b].concat(params.splice(0, 2)));
+//             name = "l";
+//             b = b == "m" ? "l" : "L";
+//         }
+//         if (name == "r") {
+//             data.push([b].concat(params));
+//         } else while (params.length >= paramCounts[name]) {
+//             data.push([b].concat(params.splice(0, paramCounts[name])));
+//             if (!paramCounts[name]) {
+//                 break;
+//             }
+//         }
+//     });
+//     return data;
+//   }
+
+//     //Calculate point along a cubic bezier where t is between 0 and 1
+//   function bezierPoint (start, control_1, control_2, end, t) {
+//     var point = [0, 0];
+
+//     //Calculate weights for point influence
+//     var w0 = Math.pow((1-t), 3);
+//     var w1 = 3*t*Math.pow((1-t), 2);
+//     var w2 = 3*Math.pow(t, 2)*(1-t);
+//     var w3 = Math.pow(t, 3);
+
+//     point[0] = w0*start[0] + w1*control_1[0] + w2*control_2[0] + w3*end[0];
+//     point[1] = w0*start[1] + w1*control_1[1] + w2*control_2[1] + w3*end[1];
+
+//     return point;
+//   }
+
+//   // Translate potentially relative path commands into absolute ones
+//   function absolutizePathData (data) {
+//     var accum = [],
+//         // The first command must be a moveto
+//         last = data[0],
+//         c;
+//     accum.push(data[0]);
+//     for (var i = 1; i < data.length; ++i) {
+//       c = data[i];
+//       if (c[0] == "z") {
+//         continue;
+//       }
+//       if (c[0] == "m" || c[0] == "l") {
+//         c = [
+//           c[0].toUpperCase(),
+//           last[1] + c[1],
+//           last[2] + c[2]
+//         ];
+//       }
+//       if (c[0] == "h") {
+//         c = [
+//           "L",
+//           last[1] + c[1],
+//           last[2]
+//         ];
+//       }
+//       if (c[0] == "v") {
+//         c = [
+//           "L",
+//           last[1],
+//           last[2] + c[1]
+//         ];
+//       }
+//       if (c[0] == "V") {
+//         c = [
+//           "L",
+//           last[1],
+//           c[1]
+//         ];
+//       }
+//       if (c[0] == "H") {
+//         c = [
+//           "L",
+//           c[1],
+//           last[2]
+//         ];
+//       }
+//       //Handle curves
+//       if (c[0] == "c" || c[0] == "C") {
+//         var start = [last[1], last[2]];
+//         var control_1 = [last[1] + c[1], last[2] + c[2]];
+//         var control_2 = [last[1] + c[3], last[2] + c[4]];
+//         var end = [last[1] + c[5], last[2] + c[6]];
+
+//         if (c[0] == "C") {
+//           control_1 = [c[1], c[2]];
+//           control_2 = [c[3], c[4]];
+//           end = [c[5], c[6]];
+//         }
+
+//         var subs = 20;
+//         for (var j = 0; j < subs; j++) {
+//           var t = j/subs;
+//           var point = bezierPoint(start, control_1, control_2, end, t);
+//           var new_c = [
+//             "L",
+//             point[0],
+//             point[1]
+//           ];
+//           accum.push(new_c);
+//           last = new_c;
+//         }
+//         c = [
+//           "L",
+//           end[0],
+//           end[1]
+//         ];
+//       }
+
+//       //TODO: Actually implement this as a curve
+//       if (c[0] == "s") {
+//         c = [
+//           "L",
+//           last[1] + c[3],
+//           last[2] + c[4]
+//         ];
+//       }
+
+//       accum.push(c);
+//       last = c;
+//     }
+//     return accum;
+//   }
+
+//   // Currently unused, but maybe useful in the future (and I don't want to dive
+//   // back into raphael to figure it out)
+//   function pathToString (data) {
+//     return data.join(",").replace(p2s, "$1");
+//   }
+
+//   // TODO: doesn't handle paths with curves
+//   function pathToPoints (data) {
+//     var polys = [],
+//         p = [],
+//         c;
+//     for (var i = 0; i < data.length; ++i) {
+//       c = data[i];
+//       if (c[0] == "M") {
+//         polys.push(p);
+//         p = [];
+//       }
+//       else if (c[0] == "S") {
+//         return [];
+//       }
+//       p.push([c[2], c[1]]);
+//     }
+//     polys.push(p);
+//     return polys;
+//   }
+
+//   return function (pathString) {
+//     return pathToPoints(absolutizePathData(parsePathString(pathString)));
+//   };
+// })();
+
+// ;    sgmap.views = {};
 
 this.sgmap = sgmap;
 
 }.call(this);
-;sgmap.templates["deal_quality"] = function(data) {
-var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
-function print() { __p += __j.call(arguments, '') }
 
- if (data.l.dq !== null) { ;
-__p += '\n  <div class="dealscore">' +
-((__t = ( Math.round(data.l.dq) )) == null ? '' : __t) +
-'</div>\n';
- } else { ;
-__p += '\n  <div class="dealscore ds-number-unavailable">&bull; &bull; &bull;</div>\n';
- } ;
-__p += '\n';
-return __p
-};
-;sgmap.templates["deal_quality_section_header"] = function(data) {
-var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
-function print() { __p += __j.call(arguments, '') }
-__p += '<div class="ds-header">\n  ';
- if (data.header) { ;
-__p += '\n    ' +
-((__t = ( data.header )) == null ? '' : __t) +
-'\n  ';
- } else { ;
-__p += '\n    ' +
-((__t = ( "Amazing Ticket Deals, Great Deals, Good Deals, Okay Deals, So-so Deals, Bad Deals, Awful Deals, Tickets without Deal Scores".split(", ")[data.bucket] )) == null ? '' : __t) +
-'\n    <a href="#" class="deal-score-info">(?)</a>\n  ';
- } ;
-__p += '\n</div>\n';
-return __p
-};
-;sgmap.templates["details"] = function(data) {
-var __t, __p = '', __e = _.escape;
-__p += '<a class="selection-back"> Back </a>\n<div class="selected-main">\n  Details about ' +
-((__t = ( data.l.sf )) == null ? '' : __t) +
-'\n</div>\n';
-return __p
-};
-;sgmap.templates["filters"] = function(data) {
-var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
-function print() { __p += __j.call(arguments, '') }
-__p += '<span class="quantity filter">\n  <label for="quantity" class="hasTooltip" title="Choose the number of tickets you would like"># Tickets</label>\n  <select id="quantity">\n    <option value="0">Any</option>\n    ';
- _.each(_.range(1, 10), function (i) { ;
-__p += '\n      <option value="' +
-((__t = ( i )) == null ? '' : __t) +
-'">' +
-((__t = ( i )) == null ? '' : __t) +
-'</option>\n    ';
- }) ;
-__p += '\n    <option value="10">10+</option>\n  </select>\n</span>\n\n<span class="etickets_only filter">\n  <input type="checkbox" name="etickets_only" id="etickets_only" class="etickets_only">\n  <label for="etickets_only" class="hasTooltip" title="Show only electronic tickets">E-tickets only</label>\n</span>\n\n<a class="more-label filter" href="#">Show price filter</a>\n\n<!-- Overflow -->\n<div class="more-filters" style="display: none;">\n\n  <div class="price filter">\n    <label for="max_price">Price per ticket <span>(including seller\'s fees and shipping)</span></label>\n    <table>\n      <tr>\n        <td class="priceInputCell text-shadow"><input id="min_price" type="text" value="0" autocomplete="off"></td>\n        <td>&nbsp;</td>\n        <td class="slider-container" style="vertical-align:middle; padding-bottom: 1px;">\n          <div id="price_slider" class="slider" style="width:216px;">\n            <div class="track" style="width:227px;"></div>\n            <div id="min_handle" class="handle ui-slider-handle"></div>\n            <div id="max_handle" class="handle ui-slider-handle" style="left:100%"></div>\n          </div>\n        </td>\n        <td>&nbsp;</td>\n        <td class="priceInputCell text-shadow"><input id="max_price" type="text" autocomplete="off"></td>\n      </tr>\n    </table>\n  </div>\n\n  <div class="market filter" style="display:none">\n    <input type="text" value="" autocomplete="off" id="market">\n  </div>\n\n</div>\n';
-return __p
-};
-;sgmap.templates["listing"] = function(data) {
-var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
-function print() { __p += __j.call(arguments, '') }
-
- if (data.l.dq !== null && data.l.dq !== undefined) { ;
-__p += '\n  <div class="dealscore">' +
-((__t = ( Math.round(data.l.dq) )) == null ? '' : __t) +
-'</div>\n';
- } else { ;
-__p += '\n  <div class="dealscore ds-number-unavailable">&bull; &bull; &bull;</div>\n';
- } ;
-__p += '\n\n<div class="listing-main">\n  ';
-
-  var additional = "";
-  if (data.l.sf.length > 20) {
-    additional = 'uber long-section-name';
-  } else if (data.l.sf.length > 8) {
-    additional = 'long-section-name';
-  }
-
-  ;
-__p += '\n  <div class="section ' +
-((__t = ( additional )) == null ? '' : __t) +
-'\n    ';
- if (data.l.eventData) { ;
-__p += '\n      x-event-section\n    ';
- } ;
-__p += '\n    ">\n    <div class="tickets">\n      ' +
-((__t = ( data.l.q )) == null ? '' : __t) +
-' ';
- if (data.l.et) { ;
-__p += '<span class="eticket-designation">e-</span>';
- } ;
-__p += 'tix\n    </div>\n\n    <!-- I\'m sorry for the tables. I really, seriously am. -->\n    <div class="section-name">\n      ';
- if(data.l.eventData) { ;
-__p += '\n        ';
- var date = Date.parse(data.l.eventData.datetime_local) ;
-__p += '\n        ';
- var away_team = (function() {
-            for (var i = 0; i < data.l.eventData.performers.length; i++) {
-              var performer = data.l.eventData.performers[i];
-              if (performer.away_team) {
-                return performer.short_name;
-              }
-            }
-          })();
-        ;
-__p += '\n        <div class="x-event-section-container clearfix\n          ';
- if (!away_team) { ;
-__p += '\n            no-away-team\n          ';
- } ;
-__p += '\n        ">\n          <div class="x-event-date">\n            ' +
-((__t = ( date.toString("MMM") )) == null ? '' : __t) +
-' <div class="bolded">' +
-((__t = ( date.toString("d") )) == null ? '' : __t) +
-'</div>\n          </div>\n          <div class="x-event-away-team">\n             ' +
-((__t = ( away_team ? "vs. " + away_team : date.toString("ddd h:mmt").toLowerCase() )) == null ? '' : __t) +
-'\n          </div>\n        </div>\n      ';
- } else { ;
-__p += '\n      <table><tr><td>\n        ' +
-((__t = ( data.l.sf == '' ? '--' : (data.l.sf == "Ga" ? "GA" : data.l.sf) )) == null ? '' : __t) +
-'\n      </td></tr></table>\n      ';
- } ;
-__p += '\n    </div>\n\n    <div class="row-name">\n       <table><tr><td>\n         <span>Row</span> ' +
-((__t = ( data.l.rf == '' ? '--' : data.l.rf )) == null ? '' : __t) +
-'\n       </td></tr></table>\n     </div>\n\n  </div>\n\n  ' +
-((__t = ( this.market_broker_logo(data.l) )) == null ? '' : __t) +
-'\n\n  <div class="buy">\n    <a href="' +
-((__t = ( data.buy_url )) == null ? '' : __t) +
-'" class="select btn primary ' +
-((__t = ( data.l.pf > 9999 ? 'long-price' : '' )) == null ? '' : __t) +
-'" target="_blank" title="Buy">\n      $' +
-((__t = ( sgmap.numberFormat(data.l.pf) )) == null ? '' : __t) +
-'\n    </a>\n  </div>\n\n</div>\n\n<div class="details" style="display:none">\n\n  <div class="details-bg">\n\n    ';
- if (data.l.eventData) { ;
-__p += '\n\n       <div class="details-section">\n        <label>Event</label>\n         <p>' +
-((__t = ( data.l.eventData.short_title )) == null ? '' : __t) +
-'</p>\n       </div>\n\n       <div class="details-section">\n        <label>Date</label>\n         <p>\n          ';
- if (date.toString("h:mm tt") === "3:30 am") { ;
-__p += '\n            ' +
-((__t = ( date.toString("ddd MMM dd yyyy, ") + "Time TBD" )) == null ? '' : __t) +
-'\n          ';
- } else { ;
-__p += '\n            ' +
-((__t = ( date.toString("ddd MMM dd yyyy, h:mm tt") )) == null ? '' : __t) +
-'\n          ';
- } ;
-__p += '\n        </p>\n\n       </div>\n\n     ';
- } ;
-__p += '\n\n    <div class="details-section">\n      <label>Section</label>\n      <p>' +
-((__t = ( data.l.sf == "Ga" ? "GA" : data.l.sf )) == null ? '' : __t) +
-'</p>\n    </div>\n\n    ';
- if (data.l.rf) { ;
-__p += '\n      <div class="details-section"><label>Row</label><p>' +
-((__t = ( data.l.rf )) == null ? '' : __t) +
-'</p></div>\n    ';
- } ;
-__p += '\n\n    <div class="details-section details-section-deal-score">\n      <label>Deal Score</label>\n      <p>' +
-((__t = ( data.deal_text )) == null ? '' : __t) +
-' <a href="#" class="deal-score-info">(?)</a></p>\n    </div>\n\n    <div class="details-section">\n      <label># Available</label>\n      ';
- if (data.l.et) { ;
-__p += '\n        <p><strong>' +
-((__t = ( data.l.q )) == null ? '' : __t) +
-' electronic ticket' +
-((__t = ( data.l.q == 1 ? '' : 's' )) == null ? '' : __t) +
-'</strong></p>\n      ';
- } else { ;
-__p += '\n        <p>' +
-((__t = ( data.l.q )) == null ? '' : __t) +
-' ticket' +
-((__t = ( data.l.q == 1 ? '' : 's' )) == null ? '' : __t) +
-'</p>\n      ';
- } ;
-__p += '\n    </div>\n\n    <div class="details-section">\n      <label>Seller</label>\n      <p>\n        <span class="seller-name">' +
-((__t = ( data.l.seller_name )) == null ? '' : __t) +
-'</span>\n        ';
- if (data.alternatives.length) { ;
-__p += '\n          <a href="#" class="show-alternatives">and ' +
-((__t = ( data.alternatives.length )) == null ? '' : __t) +
-' more</a>\n        ';
- } ;
-__p += '\n      </p>\n    </div>\n\n    <div class="details-section">\n      <label>Price</label>\n      <p>\n        $' +
-((__t = ( sgmap.numberFormat(data.l.pf) )) == null ? '' : __t) +
-' each\n        <span class="price-breakdown">$' +
-((__t = ( sgmap.numberFormat(data.l.p) )) == null ? '' : __t) +
-' base + $' +
-((__t = ( sgmap.numberFormat(data.l.pf - data.l.p) )) == null ? '' : __t) +
-' fees &amp; shipping from the seller</span>\n      </p>\n    </div>\n\n    ';
- if (data.l.fv) { ;
-__p += '\n      <div class="details-section"><label>Face Value</label><p>$' +
-((__t = ( Math.round(data.l.fv) )) == null ? '' : __t) +
-'</p></div>\n    ';
- } ;
-__p += '\n\n    ';
- if (data.l.d) { ;
-__p += '\n      <div class="details-section"><label>Seller Notes</label><p>' +
-((__t = ( data.l.d )) == null ? '' : __t) +
-'</p></div>\n    ';
- } ;
-__p += '\n\n    ';
- if (data.l.sg) { ;
-__p += '\n      <div class="details-section"><label>SeatGeek Notes</label><p>' +
-((__t = ( data.l.sg )) == null ? '' : __t) +
-'</p></div>\n    ';
- } ;
-__p += '\n\n    <div class="clear"></div>\n\n    <div class="more-details-buy">\n      <a href="' +
-((__t = ( data.buy_url )) == null ? '' : __t) +
-'" class="select btn primary" target="_blank">$' +
-((__t = ( sgmap.numberFormat(data.l.pf) )) == null ? '' : __t) +
-' each &nbsp; <strong>Buy &rarr;</strong></a>\n    </div>\n\n  </div>\n\n  <div class="alternatives" style="display: none;">\n    ';
- if (data.alternatives.length) { ;
-__p += '\n      <div class="header">' +
-((__t = ( data.alternatives.length )) == null ? '' : __t) +
-' listing' +
-((__t = ( data.alternatives.length > 1 ? 's' : '' )) == null ? '' : __t) +
-' with the same details but a higher price:</div>\n      ';
- var that = this; ;
-__p += '\n      ';
- _.each(data.alternatives, function (l) { ;
-__p += '\n        <div class="alt-listing first" data-id="' +
-((__t = ( l.uniqueId )) == null ? '' : __t) +
-'">\n          ' +
-((__t = ( that.market_broker_logo(l) )) == null ? '' : __t) +
-'\n          <a href="' +
-((__t = ( l.buy_url )) == null ? '' : __t) +
-'" class="select btn primary" target="_blank" title="Buy">$' +
-((__t = ( l.pf )) == null ? '' : __t) +
-'</a>\n        </div>\n      ';
- }); ;
-__p += '\n    ';
- } ;
-__p += '\n    <div class="sg-arrow top arrow-2"></div><div class="sg-arrow top arrow-1"></div>\n  </div>\n\n</div>\n';
-return __p
-};
-;sgmap.templates["market_broker_logo"] = function(data) {
-var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
-function print() { __p += __j.call(arguments, '') }
-
- if (data.seller_logo !== undefined) { ;
-__p += '\n    <div class="market market-name-text">\n      <table><tr><td><div>\n        <img src="' +
-((__t = ( data.seller_logo )) == null ? '' : __t) +
-'" alt="' +
-((__t = ( data.seller_name )) == null ? '' : __t) +
-'">\n      </div></td></tr></table>\n    </div>\n';
- } else if (data.bn !== undefined && data.bn !== null && data.bn !== "UberSeat" ) { ;
-__p += '\n    <div class="market market-name-text">\n      <table><tr><td><div>\n        ';
- if (data.bn.length > 25) { ;
-__p += '\n          <span title="' +
-((__t = ( data.bn.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0') )) == null ? '' : __t) +
-'" class="substr">\n            ' +
-((__t = ( data.bn.substr(0, 25) )) == null ? '' : __t) +
-'<span>&hellip;</span>\n          </span>\n        ';
- } else { ;
-__p += '\n          ' +
-((__t = ( data.bn )) == null ? '' : __t) +
-'\n        ';
- } ;
-__p += '\n      </div></td></tr></table>\n    </div>\n';
- } else { ;
-__p += '\n  <div class="market market-name-text">\n    <table><tr><td><div>\n      ' +
-((__t = ( data.seller_name )) == null ? '' : __t) +
-'\n    </div></td></tr></table>\n  </div>\n';
- } ;
-__p += '\n';
-return __p
-};
-;sgmap.templates["newlisting"] = function(data) {
-var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
-function print() { __p += __j.call(arguments, '') }
-__p += '<div class="listing-main">\n  <div class="ds">\n    ';
- if (data.l.dq !== null && data.l.dq !== undefined) { ;
-__p += '\n      ' +
-((__t = ( Math.round(data.l.dq) )) == null ? '' : __t) +
-'\n    ';
- } else { ;
-__p += '\n      &bull; &bull; &bull;\n    ';
- } ;
-__p += '\n  </div>\n  ';
-
-  var additional = "";
-  if (data.l.sf.length > 20) {
-    additional = 'uber long-section-name';
-  } else if (data.l.sf.length > 7) {
-    additional = 'long-section-name';
-  }
-
-  ;
-__p += '\n  <span class="section">\n    <span class="tickets">\n      ' +
-((__t = ( data.l.q )) == null ? '' : __t) +
-' ';
- if (data.l.et) { ;
-__p += '<span class="eticket-designation">e-</span>';
- } ;
-__p += 'tix\n    </span>\n\n    <!-- I\'m sorry for the tables. I really, seriously am. -->\n    <span class="section-name">\n      ' +
-((__t = ( data.l.sf == '' ? '--' : (data.l.sf == "Ga" ? "GA" : data.l.sf) )) == null ? '' : __t) +
-'\n    </span>\n\n    <span class="row-name">\n       <span>Row</span> ' +
-((__t = ( data.l.rf == '' ? '--' : data.l.rf )) == null ? '' : __t) +
-'\n     </span>\n\n  </span>\n</div>';
-return __p
-};
-;sgmap.templates["page_header"] = function(data) {
-var __t, __p = '', __e = _.escape;
-__p += '<div class="pageHeaderLabel">Page ' +
-((__t = ( data.page + 1 )) == null ? '' : __t) +
-' of ' +
-((__t = ( data.total_pages )) == null ? '' : __t) +
-'</div>\n';
-return __p
-};
-;sgmap.templates["page_spinner"] = function(data) {
-var __t, __p = '', __e = _.escape;
-__p += '<div class = "sidebar-pageload">\n  <img src=\'/images/loaders/loading-dark.gif\'>\n</div>\n';
-return __p
-};
-;sgmap.templates["popup"] = function(data) {
-var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
-function print() { __p += __j.call(arguments, '') }
-
-
-var listing_class = 'header',
-    len = (data.section ? data.section.length : 0) + (data.row ? data.row.length : 0),
-    preSec = 'Section ',
-    postSec = ', ';
-if (len > 12) listing_class += ' long-section-name';
-if (len > 18) {
-  listing_class += ' uber';
-  postSec = '<br>';
-}
-if (len > 30) preSec = '';
-;
-__p += '\n\n<div class="header-wrap seatview-new">\n  <div class="' +
-((__t = ( listing_class )) == null ? '' : __t) +
-'">\n    <span class="title">\n      <span class="section">' +
-((__t = ( preSec )) == null ? '' : __t) +
-'' +
-((__t = ( data.section )) == null ? '' : __t) +
-'</span>' +
-((__t = ( data.row ? postSec : '' )) == null ? '' : __t) +
-'\n      ';
- if (data.row) { ;
-__p += '\n        <span class="row">Row ' +
-((__t = ( data.row )) == null ? '' : __t) +
-'</span>\n      ';
- } ;
-__p += '\n    </span>\n    <span class="quantity">' +
-((__t = ( data.listingsCount )) == null ? '' : __t) +
-' listing' +
-((__t = ( data.listingsCount == 1 ? '' : 's' )) == null ? '' : __t) +
-' available</span>\n    <a href="#" class="close">&times;</a>\n  </div>\n</div>\n<div class="listings seatview-new" style="max-height:400px; overflow:auto;">\n  <!-- TODO: this.view_from_seat(ls[0].s, 370) -->\n  <div class="ds-section ds7 dsn">\n    <div class="section-listings"></div>\n  </div>\n</div>\n';
-return __p
-};
-;sgmap.templates["sort_bar"] = function(data) {
-var __t, __p = '', __e = _.escape;
-__p += '<li title="Sort by Deal Score" class="sort-ds-container"><a class="sort-ds asc" sortby="dealQuality">Deal<br>Score</a></li>\n<li title="Sort by section"><a class="sort-section" sortby="section">Section</a></li>\n<li title="Sort by ticket market"><a class="sort-market" sortby="market">Market</a></li>\n<li title="Sort by price"><a class="sort-price" sortby="price">Price<br><span>per ticket</span></a></li>\n';
-return __p
-};
-;sgmap.templates["tooltip"] = function(data) {
-var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
-function print() { __p += __j.call(arguments, '') }
-__p += '<strong>Section ' +
-((__t = ( data.section )) == null ? '' : __t) +
-'</strong>';
- if (data.row) { ;
-__p += ' <strong>Row ' +
-((__t = ( data.row )) == null ? '' : __t) +
-'</strong>';
- } ;
-__p += ',\n<span class="section-price">\n  ' +
-((__t = ( data.listingsCount )) == null ? '' : __t) +
-' listing' +
-((__t = ( data.listingsCount == 1 ? '' : 's' )) == null ? '' : __t) +
-'\n  from <span class="lowest-price">$' +
-((__t = ( data.minPrice )) == null ? '' : __t) +
-'</span>\n</span>\n';
-return __p
-};
-;
 //# sourceMappingURL=bundle_maps_js.js.map
