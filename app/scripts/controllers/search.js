@@ -1,10 +1,8 @@
 'use strict';
 
 angular.module('sgmobileApp')
-  .controller('SearchCtrl', function ($scope) {
-    $scope.awesomeThings = [
-      'HTML5 Boilerplate',
-      'AngularJS',
-      'Karma'
-    ];
+  .controller('SearchCtrl', function ($scope, Seatgeek) {
+    Seatgeek.Autocomplete.getSuggestions({q: 'hello'}, function(data) {
+      $scope.searchResults = data;
+    });
   });
