@@ -27,7 +27,7 @@ html, body {
   height: 34px;
   padding: 10px 5px;
   padding-left: 10px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 4px double black;
 }
 /* line 87, ../src/map.scss */
 .event-listing.ds-0 .deal-score-container .outer-circle {

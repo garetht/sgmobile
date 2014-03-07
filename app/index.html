@@ -77,6 +77,21 @@
         <script src="scripts/controllers/event.js"></script>
         <script src="scripts/controllers/map.js"></script>
         <script src="scripts/controllers/myEvents.js"></script>
+        <script src="scripts/services/Listing.js"></script>
         <!-- endbuild -->
+
+        <script>
+          $(document).ready(function() {
+            $.ajaxSetup({ cache: true });
+            $.getScript('//connect.facebook.net/en_UK/all.js', function(){
+              FB.init({
+                appId: '130121696309',
+              });
+              $('#loginbutton,#feedbutton').removeAttr('disabled');
+              FB.getLoginStatus(updateStatusCallback);
+            });
+          });
+
+        </script>
 </body>
 </html>
