@@ -1,0 +1,89 @@
+$fontStackHeader     : 'Helvetica Neue', Arial, Helvetica, sans-serif;
+$fontStackBody       : 'HelveticaNeue-UltraLight', 'Helvetica Neue Ultra Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+$fontSize            : 13px;
+$fontHeight          : 100%;
+$fontWeight          : 400;
+$searchDetailPadding : 90px;
+
+@mixin font-stack($header: false, $size: $fontSize, $lineHeight: $fontHeight, $weight: $fontWeight) {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  @if $header {
+    font: $weight $size $fontStackHeader;
+  } @else {
+    font: $weight $size $fontStackBody;
+  }
+  // Sass interprets anything with a / as division, so separate out the line height.
+  @if $lineHeight {
+    line-height: $lineHeight;
+  }
+}
+
+.category-divider {
+  border-top: 1px solid #E7E7E7;
+  border-bottom: 1px solid #E7E7E7;
+  height: 26px;
+  width: 100%;
+  background-color: #F5F5F5;
+  h5 {
+    @include font-stack($header: true, $size: 14px, $weight: 400);
+    color: #0F68C0;
+    padding-top: 6px;
+    padding-left: 9px;
+  }
+}
+
+.search-cell {
+  height: 45px;
+  border-bottom: 1px solid #E7E7E7; 
+  .search-image {
+    background-image: center center;
+    background-size: cover cover;
+    width: 77px;
+    height: 45px;
+    float: left;
+    border-right: 1px solid #E7E7E7;
+  }
+  .search-event-date {
+    width: 77px;
+    height: 45px;
+    float: left;
+    border-right: 1px solid #E7E7E7;
+    h4 {
+    @include font-stack($header: true, $size: 15px, $weight: 400);
+     padding-left: 10px;
+     padding-top: 8px;
+     padding-bottom: 2px;
+     color: #868686;     
+    }
+    h5 {
+      @include font-stack($header: true, $size: 13px, $weight: 400);
+      padding-left: 10px;
+      color: #868686;
+    }
+  }
+  .search-details,
+  .search-event-details {
+    width: 100%;
+    h3, h4, h5 {
+      padding-left: $searchDetailPadding;
+      color: #414141;
+    }
+    h3 {
+      @include font-stack($header: true, $size: 17px, $weight: 400);
+      padding-top: 14px;  
+    } 
+    h4 {
+    @include font-stack($header: true, $size: 15px, $weight: 400);
+     padding-left: $searchDetailPadding;
+     padding-top: 8px;
+     padding-bottom: 2px;   
+    }
+    h5 {
+      @include font-stack($header: true, $size: 13px, $weight: 400);
+      padding-left: $searchDetailPadding;
+      color: #868686;
+    }
+  }
+
+}
