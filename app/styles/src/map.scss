@@ -1,5 +1,28 @@
 @import "common";
 
+// In order:  amazing  great   good     okay   so-so    bad    awful   none
+$dealColors:  #70b009 #86b604 #8ac306 #fdb727 #fca553 #fe9549 #fb6c6c #4ba2f1;
+$dealBorders: #558a01 #5b9202 #7a9302 #cf9304 #d47411 #d74708 #cf1a1a #1878cf;
+              // In order:      amazing  great   good     okay   so-so    bad    awful   none
+
+// In order:                     amazing   great   good   okay   so-so    bad    awful  none
+$dealFilledBorderTop:            #528303 #537101 #5b7d01 #b78204 #a85603 #c14006 #bc0d0d #4ba2f1;
+$dealFilledBorderBottom:         #467002 #5c9402 #719f04 #d19504 #c46707 #d84708 #be0d0d #4ba2f1;
+$dealFilledTopGradient:          #86cd13 #93c310 #97d20b #ffbd2f #fb8c1a #ff8022 #fe6161 #4ba2f1;
+$dealFilledBottomGradient:       #67a209 #7aa603 #70a203 #f39e0a #f66b05 #f66606 #e83838 #1878cf;
+$dealFilledOpaqueTopGradient:    #fce7e7 #f2f8e2 #f2f9e1 #fff7e5 #fff1e3 #feede1 #ffecec #f0f9e2;
+$dealFilledOpaqueBottomGradient: #f0f9e2 #eff4e0 #eef4e0 #fef3e1 #feede1 #fde9dc #fce7e7 #e9f3fd;
+
+$omniboxMainFontColor: #3b3b3b;
+$omniboxSubFontColor: #868686;
+
+@mixin ellipsifyAt($width: 130px) {
+  width: $width;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .sg-map-container {
   height: 200px;
   width: 100%;
@@ -9,4 +32,160 @@
 #sg-map {
   width: 100%;
   height: 500px;
+}
+
+@mixin BackArrow($size: 20px, $color: #0066c3, $width: 3px) {
+  @include Chevronesque($size, $size, $color, $width);
+}
+
+@mixin Chevronesque($leftLength: 10px, $rightLength: 20px, $color: #0066c3, $width: 3px) {
+  .arrow {
+    width: $width;
+    height: $leftLength;
+    background-color: $color;
+    border-right: none;
+    border-bottom: none;
+    position: relative;
+    border-radius: 2px;
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+
+  .arrow::after {
+    content: "";
+    width: $width;
+    top: ($rightLength / 2) - $leftLength;
+    left: ($rightLength / 2) - 1;
+    display: block;
+    height: $rightLength;
+    background-color: $color;
+    border-right: none;
+    border-bottom: none;
+    position: relative;
+    border-radius: 2px;
+    -webkit-transform: rotate(270deg);
+    transform: rotate(270deg);
+  }
+}
+
+// This should go in _sgstrap
+// Add optional gradient option, and use an if statement.
+// Specify a fill or a gradient fill, and a border or a gradient border
+// ASSUMES a HTML structure
+// Circle allows border gradients for browsers that do not support border-image
+@mixin Circle($border: false,
+              $borderTop: false,
+              $borderBottom: false,
+              $fill: false,
+              $fillTop: false,
+              $fillBottom: false,
+              $diameter: 40px,
+              $thickness: 2px,
+              $fontColor: $omniboxMainFontColor,
+              $opacity: 100%) {
+
+  .outer-circle {
+    @include dimensions($diameter, $diameter);
+    border-radius: 50%;
+    @if $border {
+      background-color: $border;
+    } @else if $borderTop and $borderBottom {
+      @include linear-gradient($borderTop, $borderBottom);
+    } @else {
+      @warn "Specify either $border, or both $borderTop and $borderBottom.";
+    }
+  }
+
+  .inner-circle {
+    @include dimensions($diameter - ($thickness * 2), $diameter - ($thickness * 2));
+    position: relative;
+    top: $thickness;
+    left: $thickness;
+    border-radius: 50%;
+    color: $fontColor;
+    @if $fill {
+      background-color: $fill;
+    } @else if $fillTop and $fillBottom {
+      @include linear-gradient($fillTop, $fillBottom);
+    } @else {
+      @warn "Specify either $fill, or both $fillTop and $fillBottom.";
+    }
+  }
+}
+
+.event-listings {
+  height: calc(100% - 250px);
+  overflow-y: auto;
+}
+
+.event-listing {
+  height: 34px;
+  padding: 10px 5px;
+  padding-left: 10px;
+  border-bottom: 1px solid #ccc;
+
+  @for $i from 1 through length($dealColors) {
+    // Empty Circles
+    &.ds-#{$i - 1} .deal-score-container{
+      @include Circle($border: nth($dealColors, $i), $fill: #fff, $diameter: 34px);
+
+    }
+  }
+
+  .circle-text {
+    @include font-stack($header: true, $size: 15px, $weight: 400);
+    padding-top: 8px;
+    text-align: center;
+  }
+
+  .deal-score-container {
+    float: left;
+  }
+
+
+  .event-detail {
+    width: 115px;
+    padding-top: 3px;
+    padding-left: 10px;
+    float: left;
+  }
+
+  .event-location {
+    @include font-stack($header: true, $size: 14px, $weight: 500);
+    @include ellipsifyAt;
+    padding-bottom: 3px;
+    color: $omniboxMainFontColor;
+  }
+
+  .event-tickets {
+    @include font-stack($header: true, $size: 13px);
+    color: $omniboxSubFontColor;
+  }
+
+  .seller-logo-container {
+    padding-top: 2px;
+    float: left;
+  }
+
+  .seller-logo {
+    @include dimensions(55px, 32px);
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+
+  .ticket-price {
+    float: left;
+    padding-left: 10px;
+    padding-top: 10px;
+    @include font-stack($size: 13px, $header: true);
+  }
+  .buy-arrow-container {
+    float: right;
+    padding-right: 10px;
+    transform: rotate(90deg);
+  }
+  .buy-arrow {
+    @include BackArrow($size: 10px);
+    padding: 15px 5px 0px 15px;
+  }
 }

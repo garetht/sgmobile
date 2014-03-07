@@ -106,8 +106,39 @@ $searchDetailPadding : 100px;
       width: 204px;
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;      
+      text-overflow: ellipsis;
     }
   }
 
+}
+
+.reveal-animation.ng-enter,
+.reveal-animation.ng-leave
+{
+    -webkit-transition: 200ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+    -moz-transition: 200ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+    -ms-transition: 200ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+    -o-transition: 200ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+    transition: 200ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+    position: relative;
+    display: block;
+}
+
+.reveal-animation.ng-enter.ng-enter-active,
+.reveal-animation.ng-leave {
+    opacity: 1;
+    top: 0;
+    height: 30px;
+    border: 0;
+    & .search-image {
+      background-image: none !important;
+      border: 0;
+    }
+}
+
+.reveal-animation.ng-leave.ng-leave-active,
+.reveal-animation.ng-enter {
+    opacity: 0;
+    top: -50px;
+    height: 0px;
 }

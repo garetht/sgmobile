@@ -195,3 +195,38 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* line 117, ../src/search.scss */
+.reveal-animation.ng-enter,
+.reveal-animation.ng-leave {
+  -webkit-transition: 200ms cubic-bezier(0.25, 0.25, 0.75, 0.75) all;
+  -moz-transition: 200ms cubic-bezier(0.25, 0.25, 0.75, 0.75) all;
+  -ms-transition: 200ms cubic-bezier(0.25, 0.25, 0.75, 0.75) all;
+  -o-transition: 200ms cubic-bezier(0.25, 0.25, 0.75, 0.75) all;
+  transition: 200ms cubic-bezier(0.25, 0.25, 0.75, 0.75) all;
+  position: relative;
+  display: block;
+}
+
+/* line 128, ../src/search.scss */
+.reveal-animation.ng-enter.ng-enter-active,
+.reveal-animation.ng-leave {
+  opacity: 1;
+  top: 0;
+  height: 30px;
+  border: 0;
+}
+/* line 133, ../src/search.scss */
+.reveal-animation.ng-enter.ng-enter-active .search-image,
+.reveal-animation.ng-leave .search-image {
+  background-image: none !important;
+  border: 0;
+}
+
+/* line 140, ../src/search.scss */
+.reveal-animation.ng-leave.ng-leave-active,
+.reveal-animation.ng-enter {
+  opacity: 0;
+  top: -50px;
+  height: 0px;
+}

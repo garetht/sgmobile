@@ -8,16 +8,18 @@
   <div class="category-divider">
     <h5>Performers</h5>
   </div>
-  <div class="search-cells performer-cells" ng-repeat="performer in searchResults.performers">
-    <div class="search-cell">
-      <div class="search-image" ng-style="{'background-image': (performer.image ? 'url(' + performer.image + ')' : 'none')}"></div>
-      <a ng-href="#/performer/{{performer.id}}"><div class="search-details"><h3>{{ performer.short_name }}</h3></div></a>
-    </div>
+  <div class="search-cells performer-cells reveal-animation" ng-repeat="performer in searchResults.performers">
+    <a ng-href="#/performer/{{performer.id}}">
+      <div class="search-cell">
+        <div class="search-image" ng-style="{'background-image': (performer.image ? 'url(' + performer.image + ')' : 'none')}"></div>
+        <div class="search-details"><h3>{{ performer.short_name }}</h3></div>
+      </div>
+    </a>
   </div>
   <div class="category-divider">
     <h5>Venues</h5>
   </div>
-  <div class="search-cells venue-cells" ng-repeat="venue in searchResults.venues">
+  <div class="search-cells venue-cells reveal-animation" ng-repeat="venue in searchResults.venues">
     <div class="search-cell">
       <div class="search-image"
       ng-style="{'background': 'url(http://maps.googleapis.com/maps/api/staticmap?center=' + venue.location.lat + ',' + venue.location.lon +'&zoom=11&size=140x90&sensor=false)'}"></div>
@@ -27,7 +29,7 @@
   <div class="category-divider">
     <h5>Events</h5>
   </div>
-  <div class="search-cells nearby-cells" ng-repeat="event in searchResults.events">
+  <div class="search-cells nearby-cells reveal-animation" ng-repeat="event in searchResults.events">
     <div class="search-cell">
       <div class="search-event-date">
         <h4>{{ event.datetime_local | date:'MMM d' }}</h4>

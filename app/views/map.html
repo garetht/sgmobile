@@ -1,9 +1,39 @@
 <header class="sg-header explore-header">
   {{ event.short_title }}
 </header>
-<div class="sg-map-container">
+<div class="sg-map-container" ng-show="hasMap">
   <div id="sg-map"></div>
 </div>
-<div class="event-listings">
-  {{ listingsData. }}
+<div class="no-map" ng-hide="hasMap">
+  There is no map available for this event.
+</div>
+<div class="event-listings" ng-show="hasListings" >
+  <div class="event-listing ds-1" ng-repeat="listing in listingsData.listings">
+    <div class="deal-score-container">
+      <div class="outer-circle">
+        <div class="inner-circle">
+          <div class="circle-text">{{ listing.dq }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="event-detail">
+      <div class="event-location">{{ listing.s }}</div>
+      <div class="event-tickets">{{ listing.q }} tickets
+        </div>
+  </div>
+  <div class="seller-logo-container">
+    <div class="seller-logo" ng-style="{'background-image': 'url(http://cdn.seatgeek.com/images/brokers/fanxchange/0/0ede7a/retina-sm.png)'}"></div>
+  </div>
+  <div class="ticket-price">
+    ${{ listing.pf | number:0 }}
+  </div>
+  <div class="buy-arrow-container">
+    <div class="buy-arrow">
+      <div class="arrow"></div>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="no-listings" ng-hide="hasListings">
+  There are no listings available.
 </div>
