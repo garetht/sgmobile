@@ -95,12 +95,20 @@ html, body {
   padding-left: 9px;
 }
 
-/* line 45, ../src/search.scss */
+/* line 46, ../src/search.scss */
+.search-header img {
+  position: absolute;
+  width: 14px;
+  left: 19px;
+  top: 24px;
+}
+
+/* line 54, ../src/search.scss */
 .search-cell {
   height: 50px;
   border-bottom: 1px solid #E7E7E7;
 }
-/* line 48, ../src/search.scss */
+/* line 57, ../src/search.scss */
 .search-cell .search-image {
   background-size: contain;
   width: 87px;
@@ -108,18 +116,18 @@ html, body {
   float: left;
   border-right: 1px solid #E7E7E7;
 }
-/* line 55, ../src/search.scss */
+/* line 64, ../src/search.scss */
 .search-cell a {
   text-decoration: none;
 }
-/* line 58, ../src/search.scss */
+/* line 67, ../src/search.scss */
 .search-cell .search-event-date {
   width: 87px;
   height: 50px;
   float: left;
   border-right: 1px solid #E7E7E7;
 }
-/* line 63, ../src/search.scss */
+/* line 72, ../src/search.scss */
 .search-cell .search-event-date h4 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -130,7 +138,7 @@ html, body {
   padding-bottom: 2px;
   color: #868686;
 }
-/* line 70, ../src/search.scss */
+/* line 79, ../src/search.scss */
 .search-cell .search-event-date h5 {
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -139,12 +147,12 @@ html, body {
   padding-left: 8px;
   color: #868686;
 }
-/* line 77, ../src/search.scss */
+/* line 86, ../src/search.scss */
 .search-cell .search-details,
 .search-cell .search-event-details {
   width: 100%;
 }
-/* line 79, ../src/search.scss */
+/* line 88, ../src/search.scss */
 .search-cell .search-details h3, .search-cell .search-details h4, .search-cell .search-details h5,
 .search-cell .search-event-details h3,
 .search-cell .search-event-details h4,
@@ -152,7 +160,7 @@ html, body {
   padding-left: 100px;
   color: #414141;
 }
-/* line 83, ../src/search.scss */
+/* line 92, ../src/search.scss */
 .search-cell .search-details h3,
 .search-cell .search-event-details h3 {
   -webkit-font-smoothing: subpixel-antialiased;
@@ -166,7 +174,7 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* line 92, ../src/search.scss */
+/* line 101, ../src/search.scss */
 .search-cell .search-details h4,
 .search-cell .search-event-details h4 {
   -webkit-font-smoothing: subpixel-antialiased;
@@ -181,7 +189,7 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* line 102, ../src/search.scss */
+/* line 111, ../src/search.scss */
 .search-cell .search-details h5,
 .search-cell .search-event-details h5 {
   -webkit-font-smoothing: subpixel-antialiased;

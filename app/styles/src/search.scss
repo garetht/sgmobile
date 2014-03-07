@@ -42,6 +42,15 @@ $searchDetailPadding : 100px;
   }
 }
 
+.search-header {
+  img {
+    position: absolute;
+    width: 14px;
+    left: 19px;
+    top: 24px;
+  }
+}
+
 .search-cell {
   height: 50px;
   border-bottom: 1px solid #E7E7E7;
