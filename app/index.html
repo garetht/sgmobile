@@ -18,6 +18,7 @@
         <link rel="stylesheet" href="styles/lib/search.css">
         <link rel="stylesheet" href="styles/lib/performer.css">
         <link rel="stylesheet" href="styles/lib/map.css">
+         <link rel="stylesheet" href="styles/lib/myevents.css">
         <!-- endbuild -->
 </head>
   <body>
@@ -25,21 +26,31 @@
     <div class="container slide-animation" ng-view=""></div>
 
     <footer class="sg-footer">
-      <div class="footer-icon selected">
-        <a href="/"><div class="icon explore-icon"></div></a>
-      </div>
-      <div class="footer-icon">
-        <a href="#/search"><div class="icon search-icon"></div></a>
-      </div>
-      <div class="footer-icon">
-        <div class="icon events-icon"></div>
-      </div>
-      <div class="footer-icon">
-        <div class="icon performers-icon"></div>
-      </div>
-      <div class="footer-icon">
-        <div class="icon settings-icon"></div>
-      </div>
+      <a class="footer-icon selected" href="/">
+        <div>
+          <div class="icon explore-icon"></div>
+        </div>
+      </a>
+      <a class="footer-icon" href="#/search">
+        <div>
+          <div class="icon search-icon"></div>
+        </div>
+      </a>
+      <a class="footer-icon" href="#/myevents">
+        <div>
+          <div class="icon events-icon"></div>
+        </div>
+      </a>
+      <a class="footer-icon" href="#/myevents">
+        <div>
+          <div class="icon performers-icon"></div>
+        </div>
+      </a>
+      <a class="footer-icon" href="#/myevents">
+        <div>
+          <div class="icon settings-icon"></div>
+        </div>
+      </a>
     </footer>
 
     <script src="bower_components/angular/angular.js"></script>
@@ -65,6 +76,7 @@
         <script src="scripts/controllers/performer.js"></script>
         <script src="scripts/controllers/event.js"></script>
         <script src="scripts/controllers/map.js"></script>
+        <script src="scripts/controllers/myEvents.js"></script>
         <!-- endbuild -->
 </body>
 </html>

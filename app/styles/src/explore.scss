@@ -20,6 +20,14 @@ $mobileGrayBorder: 1px solid #b3c0cc;
   z-index: 100;
 }
 
+.explore-header img,
+.myevents-header img {
+  width: 22px;
+  position: absolute;
+  right: 15px;
+  top: 14px;
+}
+
 .sg-footer {
   position: absolute;
   bottom: 0;
@@ -56,6 +64,11 @@ $mobileGrayBorder: 1px solid #b3c0cc;
 
     &.selected {
       border-bottom: 3px solid $mobileLightBlue;
+      @each $tab in explore, search, events, performers, settings {
+        .#{$tab}-icon {
+          background-image: url(/images/#{$tab}-active.png);
+        }
+      }
     }
   }
 }
