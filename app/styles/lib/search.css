@@ -97,21 +97,21 @@ html, body {
 
 /* line 45, ../src/search.scss */
 .search-cell {
-  height: 45px;
+  height: 50px;
   border-bottom: 1px solid #E7E7E7;
 }
 /* line 48, ../src/search.scss */
 .search-cell .search-image {
   background-size: contain;
   width: 77px;
-  height: 45px;
+  height: 50px;
   float: left;
   border-right: 1px solid #E7E7E7;
 }
 /* line 55, ../src/search.scss */
 .search-cell .search-event-date {
   width: 77px;
-  height: 45px;
+  height: 50px;
   float: left;
   border-right: 1px solid #E7E7E7;
 }
@@ -122,7 +122,7 @@ html, body {
   font: 400 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
   line-height: 100%;
   padding-left: 10px;
-  padding-top: 8px;
+  padding-top: 10px;
   padding-bottom: 2px;
   color: #868686;
 }
@@ -155,7 +155,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   font: 400 17px "Helvetica Neue", Arial, Helvetica, sans-serif;
   line-height: 100%;
-  padding-top: 14px;
+  padding-top: 17px;
 }
 /* line 84, ../src/search.scss */
 .search-cell .search-details h4,
@@ -165,7 +165,7 @@ html, body {
   font: 400 15px "Helvetica Neue", Arial, Helvetica, sans-serif;
   line-height: 100%;
   padding-left: 90px;
-  padding-top: 8px;
+  padding-top: 10px;
   padding-bottom: 2px;
 }
 /* line 90, ../src/search.scss */
