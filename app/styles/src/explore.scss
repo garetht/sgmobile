@@ -40,10 +40,10 @@ $mobileGrayBorder: 1px solid #b3c0cc;
     }
 
     .icon {
-      width: 32px;
-      height: 32px;
-      margin-top: 5px;
-      margin-left: 15px;
+      width: 26px;
+      height: 26px;
+      margin-top: 9px;
+      margin-left: 18px;
       background-size: contain;
       background-repeat: no-repeat;
     }
@@ -55,7 +55,7 @@ $mobileGrayBorder: 1px solid #b3c0cc;
     }
 
     &.selected {
-      border-bottom: 4px solid $mobileLightBlue;
+      border-bottom: 3px solid $mobileLightBlue;
     }
   }
 }

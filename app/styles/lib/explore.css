@@ -46,10 +46,10 @@ body {
 }
 /* line 42, ../src/explore.scss */
 .sg-footer .footer-icon .icon {
-  width: 32px;
-  height: 32px;
-  margin-top: 5px;
-  margin-left: 15px;
+  width: 26px;
+  height: 26px;
+  margin-top: 9px;
+  margin-left: 18px;
   background-size: contain;
   background-repeat: no-repeat;
 }
@@ -75,7 +75,7 @@ body {
 }
 /* line 57, ../src/explore.scss */
 .sg-footer .footer-icon.selected {
-  border-bottom: 4px solid #2666b1;
+  border-bottom: 3px solid #2666b1;
 }
 
 /* line 63, ../src/explore.scss */
